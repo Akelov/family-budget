@@ -9,7 +9,7 @@
 |---|---|---|
 | 1 | Выбор и настройка AI-инструмента | [docs/hw1](docs/hw1/report.md) |
 | 2 | Правила для агента и промпт-шаблоны | [docs/hw2](docs/hw2/hw_ai_rules.md) |
-| 3 | UI-концепции, User Stories, ТЗ | — |
+| 3 | UI-концепции, User Stories, ТЗ | [docs/hw3](docs/hw3/README.md) |
 | 4 | Frontend | — |
 | 5 | Backend (Supabase) | — |
 | 6 | CI/CD и интеграции | — |
