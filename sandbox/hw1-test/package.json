@@ -1,0 +1,22 @@
+{
+  "name": "hw1-test",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Тестовый проект ДЗ1: проверка работы AI-агента Claude Code",
+  "type": "module",
+  "scripts": {
+    "test": "node --import tsx --test tests/*.test.ts tests/*.test.tsx",
+    "demo": "esbuild demo/main.tsx --bundle --outfile=demo/bundle.js --jsx=automatic --minify"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "esbuild": "^0.28.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}
