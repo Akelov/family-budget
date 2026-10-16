@@ -1,0 +1,15 @@
+{
+  "name": "hw2-budget-limits",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ДЗ2, Chain-of-Thought: модуль месячных лимитов по категориям",
+  "type": "module",
+  "scripts": {
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.0",
+    "typescript": "^6.0.0"
+  }
+}
