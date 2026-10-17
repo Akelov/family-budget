@@ -49,13 +49,23 @@ export default function InvitePage() {
           <UserPlus className="size-6" aria-hidden />
         </span>
         <h1 className="text-xl font-semibold">Приглашение в семью</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Вы будете видеть и вести общий бюджет вместе с семьёй.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Вы будете видеть и вести общий бюджет вместе с семьёй.
+        </p>
         <div className="mt-5 flex flex-col gap-4">
           <Field id={`${id}-name`} label="Ваше имя в семье">
-            <TextInput id={`${id}-name`} value={name} maxLength={40} onChange={(e) => setName(e.target.value)} />
+            <TextInput
+              id={`${id}-name`}
+              value={name}
+              maxLength={40}
+              onChange={(e) => setName(e.target.value)}
+            />
           </Field>
           {error && (
-            <p role="alert" className="rounded-xl bg-danger-bg px-3 py-2 text-sm text-danger-foreground">
+            <p
+              role="alert"
+              className="rounded-xl bg-danger-bg px-3 py-2 text-sm text-danger-foreground"
+            >
               {error}
             </p>
           )}

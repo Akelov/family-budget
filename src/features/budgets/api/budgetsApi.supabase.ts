@@ -16,26 +16,40 @@ import type { BudgetInput } from './types';
  * Бюджеты за период семьи: «потрачено» считает сервер (`budget_status`) по всем операциям,
  * остаток, процент и статус — общая функция model/ (та же, что в демо-режиме).
  */
-export async function fetchBudgetStatuses(period: Pick<Period, 'from' | 'to'>): Promise<BudgetView[]> {
+export async function fetchBudgetStatuses(
+  period: Pick<Period, 'from' | 'to'>,
+): Promise<BudgetView[]> {
   const sb = supabase();
   const [budgetRows, statusRows, categories] = await Promise.all([
-    sb.from('budgets').select(BUDGET_COLUMNS).is('archived_at', null).order('created_at')
+    sb
+      .from('budgets')
+      .select(BUDGET_COLUMNS)
+      .is('archived_at', null)
+      .order('created_at')
       .overrideTypes<BudgetRow[], { merge: false }>(),
     rpcRows('budget_status', { p_from: period.from, p_to: period.to }),
     fetchCategories(),
   ]);
   const spentById = new Map(statusRows.map((row) => [str(row, 'budget_id'), num(row, 'spent')]));
   const lookups = buildLookups({ members: [], tags: [], ...categories });
-  return unwrap(budgetRows).map((row) => budgetViewFromSpent(toBudget(row), spentById.get(row.id) ?? 0, lookups));
+  return unwrap(budgetRows).map((row) =>
+    budgetViewFromSpent(toBudget(row), spentById.get(row.id) ?? 0, lookups),
+  );
 }
 
 function assertValid(input: BudgetInput): void {
   const name = input.name.trim();
-  if (name.length < 1 || name.length > 40) throw new ApiError('validation', 'Название — от 1 до 40 символов');
-  if (!Number.isSafeInteger(input.amount) || input.amount <= 0 || input.amount > MAX_AMOUNT_KOPECKS) {
+  if (name.length < 1 || name.length > 40)
+    throw new ApiError('validation', 'Название — от 1 до 40 символов');
+  if (
+    !Number.isSafeInteger(input.amount) ||
+    input.amount <= 0 ||
+    input.amount > MAX_AMOUNT_KOPECKS
+  ) {
     throw new ApiError('validation', 'Введите сумму больше 0');
   }
-  if (input.items.length === 0) throw new ApiError('validation', 'Выберите хотя бы одну категорию или подкатегорию');
+  if (input.items.length === 0)
+    throw new ApiError('validation', 'Выберите хотя бы одну категорию или подкатегорию');
 }
 
 function itemRows(budgetId: string, items: BudgetItem[]) {
@@ -53,8 +67,13 @@ export async function createBudget(input: BudgetInput): Promise<Budget> {
   check({ error });
   if (typeof householdId !== 'string') throw new ApiError('no_household');
   const row = unwrap(
-    await sb.from('budgets')
-      .insert({ household_id: householdId, name: input.name.trim(), amount: kopecksToRublesString(input.amount) })
+    await sb
+      .from('budgets')
+      .insert({
+        household_id: householdId,
+        name: input.name.trim(),
+        amount: kopecksToRublesString(input.amount),
+      })
       .select(BUDGET_COLUMNS)
       .overrideTypes<BudgetRow[], { merge: false }>(),
   )[0];
@@ -73,8 +92,12 @@ export async function updateBudget(id: string, input: BudgetInput): Promise<void
   assertValid(input);
   const sb = supabase();
   const rows = unwrap(
-    await sb.from('budgets').update({ name: input.name.trim(), amount: kopecksToRublesString(input.amount) })
-      .eq('id', id).select('id').overrideTypes<Array<{ id: string }>, { merge: false }>(),
+    await sb
+      .from('budgets')
+      .update({ name: input.name.trim(), amount: kopecksToRublesString(input.amount) })
+      .eq('id', id)
+      .select('id')
+      .overrideTypes<Array<{ id: string }>, { merge: false }>(),
   );
   if (rows.length === 0) throw new ApiError('forbidden');
   check(await sb.from('budget_items').delete().eq('budget_id', id));
@@ -84,7 +107,11 @@ export async function updateBudget(id: string, input: BudgetInput): Promise<void
 
 export async function archiveBudget(id: string): Promise<void> {
   const rows = unwrap(
-    await supabase().from('budgets').update({ archived_at: new Date().toISOString() }).eq('id', id).select('id')
+    await supabase()
+      .from('budgets')
+      .update({ archived_at: new Date().toISOString() })
+      .eq('id', id)
+      .select('id')
       .overrideTypes<Array<{ id: string }>, { merge: false }>(),
   );
   if (rows.length === 0) throw new ApiError('forbidden');

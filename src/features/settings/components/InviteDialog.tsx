@@ -63,7 +63,11 @@ export function InviteDialog({ onClose }: InviteDialogProps) {
                 : 'Участник ведёт свои операции и видит всё в семье.'}{' '}
               Ссылка одноразовая и действует 7 дней.
             </p>
-            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+            {error && (
+              <p role="alert" className="text-sm text-destructive">
+                {error}
+              </p>
+            )}
             <Button isBlock size="lg" isLoading={isLoading} onClick={() => void create()}>
               Создать ссылку
             </Button>
@@ -71,7 +75,12 @@ export function InviteDialog({ onClose }: InviteDialogProps) {
         ) : (
           <>
             <p className="text-sm">Отправьте ссылку человеку, которого приглашаете:</p>
-            <TextInput readOnly value={link} aria-label="Ссылка-приглашение" onFocus={(e) => e.target.select()} />
+            <TextInput
+              readOnly
+              value={link}
+              aria-label="Ссылка-приглашение"
+              onFocus={(e) => e.target.select()}
+            />
             <Button isBlock size="lg" icon={<Copy />} onClick={() => void copy(link)}>
               {isCopied ? 'Скопировано' : 'Скопировать ссылку'}
             </Button>

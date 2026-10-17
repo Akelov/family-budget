@@ -65,7 +65,13 @@ export function AuthForm({
       {intro}
       {hasEmail && (
         <Field id={`${id}-email`} label="Email">
-          <TextInput id={`${id}-email`} type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <TextInput
+            id={`${id}-email`}
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </Field>
       )}
       {hasPassword && (
@@ -80,7 +86,10 @@ export function AuthForm({
         </Field>
       )}
       {error && (
-        <p role="alert" className="rounded-xl bg-danger-bg px-3 py-2 text-sm text-danger-foreground">
+        <p
+          role="alert"
+          className="rounded-xl bg-danger-bg px-3 py-2 text-sm text-danger-foreground"
+        >
           {error}
         </p>
       )}

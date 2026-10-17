@@ -49,7 +49,9 @@ export function AccountCard() {
           ))}
       </div>
       {isConfirmingLeave && (
-        <p className="mt-3 text-sm text-muted-foreground">Ваши операции останутся в семье с пометкой «бывший участник».</p>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Ваши операции останутся в семье с пометкой «бывший участник».
+        </p>
       )}
     </SettingsCard>
   );

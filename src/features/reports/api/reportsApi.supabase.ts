@@ -16,28 +16,49 @@ async function lookups(): Promise<Lookups> {
   return buildLookups({ members: [], ...categories, tags });
 }
 
-async function sums(fn: string, args: Record<string, string>, idKey: string): Promise<Map<string, number>> {
+async function sums(
+  fn: string,
+  args: Record<string, string>,
+  idKey: string,
+): Promise<Map<string, number>> {
   const rows = await rpcRows(fn, args);
   return new Map(rows.map((row) => [str(row, idKey), num(row, 'amount')]));
 }
 
-export async function fetchCategoryReport(period: Pick<Period, 'from' | 'to'>, type: TransactionType): Promise<Report> {
+export async function fetchCategoryReport(
+  period: Pick<Period, 'from' | 'to'>,
+  type: TransactionType,
+): Promise<Report> {
   const [data, ref] = await Promise.all([
-    sums('report_by_category', { p_from: period.from, p_to: period.to, p_type: type }, 'category_id'),
+    sums(
+      'report_by_category',
+      { p_from: period.from, p_to: period.to, p_type: type },
+      'category_id',
+    ),
     lookups(),
   ]);
   return categoryRowsFromSums(data, ref);
 }
 
-export async function fetchSubcategoryReport(period: Pick<Period, 'from' | 'to'>, categoryId: string): Promise<Report> {
+export async function fetchSubcategoryReport(
+  period: Pick<Period, 'from' | 'to'>,
+  categoryId: string,
+): Promise<Report> {
   const [data, ref] = await Promise.all([
-    sums('report_by_subcategory', { p_from: period.from, p_to: period.to, p_category_id: categoryId }, 'subcategory_id'),
+    sums(
+      'report_by_subcategory',
+      { p_from: period.from, p_to: period.to, p_category_id: categoryId },
+      'subcategory_id',
+    ),
     lookups(),
   ]);
   return subcategoryRowsFromSums(data, categoryId, ref);
 }
 
-export async function fetchTagReport(period: Pick<Period, 'from' | 'to'>, type: TransactionType): Promise<Report> {
+export async function fetchTagReport(
+  period: Pick<Period, 'from' | 'to'>,
+  type: TransactionType,
+): Promise<Report> {
   const [data, ref] = await Promise.all([
     sums('report_by_tag', { p_from: period.from, p_to: period.to, p_type: type }, 'tag_id'),
     lookups(),

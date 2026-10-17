@@ -25,8 +25,15 @@ function filterArgs(query: TransactionQuery) {
 }
 
 /** `list_transactions`: порция истории. Просим на одну больше, чтобы знать, есть ли продолжение. */
-export async function fetchTransactionsPage(query: TransactionQuery, cursor = 0): Promise<TransactionPage> {
-  const rows = await rpcRows('list_transactions', { ...filterArgs(query), p_offset: cursor, p_limit: PAGE_SIZE + 1 });
+export async function fetchTransactionsPage(
+  query: TransactionQuery,
+  cursor = 0,
+): Promise<TransactionPage> {
+  const rows = await rpcRows('list_transactions', {
+    ...filterArgs(query),
+    p_offset: cursor,
+    p_limit: PAGE_SIZE + 1,
+  });
   const items: Transaction[] = rows.slice(0, PAGE_SIZE).map((row) => ({
     id: str(row, 'id'),
     type: str(row, 'type') === 'income' ? 'income' : 'expense',
@@ -72,7 +79,9 @@ export async function fetchTransaction(id: string): Promise<Transaction> {
   const row = unwrap(
     await supabase()
       .from('transactions')
-      .select('id, type, amount::text, subcategory_id, date, comment, author_id, created_at, updated_at, deleted_at, transaction_tags(tag_id)')
+      .select(
+        'id, type, amount::text, subcategory_id, date, comment, author_id, created_at, updated_at, deleted_at, transaction_tags(tag_id)',
+      )
       .eq('id', id)
       .overrideTypes<TransactionTableRow[], { merge: false }>(),
   )[0];
@@ -111,8 +120,18 @@ export async function createTransaction(id: string, input: TransactionInput): Pr
 }
 
 /** `update_transaction` с проверкой версии: коды forbidden / conflict / not_found (FR-3.5). */
-export async function updateTransaction(id: string, expectedUpdatedAt: string, input: TransactionInput): Promise<Transaction> {
-  check(await supabase().rpc('update_transaction', { p_id: id, p_expected_updated_at: expectedUpdatedAt, ...writeArgs(input) }));
+export async function updateTransaction(
+  id: string,
+  expectedUpdatedAt: string,
+  input: TransactionInput,
+): Promise<Transaction> {
+  check(
+    await supabase().rpc('update_transaction', {
+      p_id: id,
+      p_expected_updated_at: expectedUpdatedAt,
+      ...writeArgs(input),
+    }),
+  );
   emitChange(['transactions', 'tags', 'budgets']);
   return fetchTransaction(id);
 }

@@ -24,7 +24,9 @@ export function RequireAuth({ children }: RequireAuthProps) {
   }
   if (status === 'signedOut') {
     const next = `${location.pathname}${location.search}`;
-    return <Navigate to={`/login${next !== '/' ? `?next=${encodeURIComponent(next)}` : ''}`} replace />;
+    return (
+      <Navigate to={`/login${next !== '/' ? `?next=${encodeURIComponent(next)}` : ''}`} replace />
+    );
   }
   return <>{children}</>;
 }

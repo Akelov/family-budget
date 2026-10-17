@@ -18,13 +18,17 @@ interface AuthErrorLike {
  */
 export function authErrorMessage(error: AuthErrorLike): string {
   const text = `${error.code ?? ''} ${error.message ?? ''}`.toLowerCase();
-  if (text.includes('invalid login credentials') || text.includes('invalid_credentials')) return 'Неверный email или пароль';
-  if (text.includes('already registered') || text.includes('user_already_exists')) return 'Этот email уже зарегистрирован. Войти?';
+  if (text.includes('invalid login credentials') || text.includes('invalid_credentials'))
+    return 'Неверный email или пароль';
+  if (text.includes('already registered') || text.includes('user_already_exists'))
+    return 'Этот email уже зарегистрирован. Войти?';
   if (text.includes('email not confirmed') || text.includes('email_not_confirmed')) {
     return 'Подтвердите email — ссылка в письме, которое мы отправили';
   }
-  if (text.includes('password') && (text.includes('least') || text.includes('weak'))) return 'Пароль — не короче 8 символов';
-  if (text.includes('rate limit') || error.status === 429) return 'Слишком много попыток. Подождите минуту и попробуйте снова';
+  if (text.includes('password') && (text.includes('least') || text.includes('weak')))
+    return 'Пароль — не короче 8 символов';
+  if (text.includes('rate limit') || error.status === 429)
+    return 'Слишком много попыток. Подождите минуту и попробуйте снова';
   if (text.includes('fetch') || text.includes('network')) return 'Нет соединения';
   if (text.includes('same password')) return 'Новый пароль совпадает со старым';
   return 'Не удалось выполнить действие. Попробуйте ещё раз';
@@ -61,7 +65,9 @@ export async function signUp(email: string, password: string): Promise<boolean> 
 
 /** Письмо со ссылкой на смену пароля. */
 export async function sendPasswordReset(email: string): Promise<void> {
-  const { error } = await supabase().auth.resetPasswordForEmail(email.trim(), { redirectTo: appUrl('update-password') });
+  const { error } = await supabase().auth.resetPasswordForEmail(email.trim(), {
+    redirectTo: appUrl('update-password'),
+  });
   fail(error);
 }
 

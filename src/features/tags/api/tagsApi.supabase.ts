@@ -7,16 +7,25 @@ import type { Tag } from '@/shared/types/domain';
 
 export async function fetchTags(): Promise<Tag[]> {
   const rows = unwrap(
-    await supabase().from('tags').select('id, name').order('name').overrideTypes<TagRow[], { merge: false }>(),
+    await supabase()
+      .from('tags')
+      .select('id, name')
+      .order('name')
+      .overrideTypes<TagRow[], { merge: false }>(),
   );
   return rows.map(toTag);
 }
 
 export async function renameTag(id: string, name: string): Promise<void> {
   const trimmed = name.trim();
-  if (trimmed.length < 1 || trimmed.length > 30) throw new ApiError('validation', 'Название тега — от 1 до 30 символов');
+  if (trimmed.length < 1 || trimmed.length > 30)
+    throw new ApiError('validation', 'Название тега — от 1 до 30 символов');
   const rows = unwrap(
-    await supabase().from('tags').update({ name: trimmed }).eq('id', id).select('id')
+    await supabase()
+      .from('tags')
+      .update({ name: trimmed })
+      .eq('id', id)
+      .select('id')
       .overrideTypes<Array<{ id: string }>, { merge: false }>(),
   );
   if (rows.length === 0) throw new ApiError('forbidden');
@@ -26,7 +35,12 @@ export async function renameTag(id: string, name: string): Promise<void> {
 /** Удаление тега снимает его с операций (каскад в transaction_tags, FR-6.3). */
 export async function deleteTag(id: string): Promise<void> {
   const rows = unwrap(
-    await supabase().from('tags').delete().eq('id', id).select('id').overrideTypes<Array<{ id: string }>, { merge: false }>(),
+    await supabase()
+      .from('tags')
+      .delete()
+      .eq('id', id)
+      .select('id')
+      .overrideTypes<Array<{ id: string }>, { merge: false }>(),
   );
   if (rows.length === 0) throw new ApiError('forbidden');
   emitChange(['tags', 'transactions']);

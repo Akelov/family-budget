@@ -33,8 +33,16 @@ async function myHouseholdId(): Promise<string> {
 export async function fetchCategories(): Promise<CategoriesData> {
   const sb = supabase();
   const [categories, subcategories] = await Promise.all([
-    sb.from('categories').select(CATEGORY_COLUMNS).order('created_at').overrideTypes<CategoryRow[], { merge: false }>(),
-    sb.from('subcategories').select(SUBCATEGORY_COLUMNS).order('created_at').overrideTypes<SubcategoryRow[], { merge: false }>(),
+    sb
+      .from('categories')
+      .select(CATEGORY_COLUMNS)
+      .order('created_at')
+      .overrideTypes<CategoryRow[], { merge: false }>(),
+    sb
+      .from('subcategories')
+      .select(SUBCATEGORY_COLUMNS)
+      .order('created_at')
+      .overrideTypes<SubcategoryRow[], { merge: false }>(),
   ]);
   return {
     categories: unwrap(categories).map(toCategory),
@@ -50,7 +58,13 @@ export async function createCategory(input: NewCategory): Promise<Category> {
   const row = unwrap(
     await sb
       .from('categories')
-      .insert({ household_id: householdId, type: input.type, name: input.name.trim(), color: input.color, icon: input.icon })
+      .insert({
+        household_id: householdId,
+        type: input.type,
+        name: input.name.trim(),
+        color: input.color,
+        icon: input.icon,
+      })
       .select(CATEGORY_COLUMNS)
       .overrideTypes<CategoryRow[], { merge: false }>(),
   )[0];
@@ -67,15 +81,27 @@ export async function createCategory(input: NewCategory): Promise<Category> {
   return toCategory(row);
 }
 
-async function changeOne(table: 'categories' | 'subcategories', id: string, values: Record<string, unknown>): Promise<void> {
+async function changeOne(
+  table: 'categories' | 'subcategories',
+  id: string,
+  values: Record<string, unknown>,
+): Promise<void> {
   const rows = unwrap(
-    await supabase().from(table).update(values).eq('id', id).select('id').overrideTypes<Array<{ id: string }>, { merge: false }>(),
+    await supabase()
+      .from(table)
+      .update(values)
+      .eq('id', id)
+      .select('id')
+      .overrideTypes<Array<{ id: string }>, { merge: false }>(),
   );
   if (rows.length === 0) throw new ApiError('forbidden');
   emitChange(['categories']);
 }
 
-export function updateCategory(id: string, patch: Partial<Pick<Category, 'name' | 'color' | 'icon'>>): Promise<void> {
+export function updateCategory(
+  id: string,
+  patch: Partial<Pick<Category, 'name' | 'color' | 'icon'>>,
+): Promise<void> {
   if (patch.name !== undefined) assertName(patch.name);
   return changeOne('categories', id, {
     ...(patch.name !== undefined ? { name: patch.name.trim() } : {}),
@@ -91,17 +117,33 @@ export function updateCategory(id: string, patch: Partial<Pick<Category, 'name' 
 export async function setCategoryArchived(id: string, isArchived: boolean): Promise<void> {
   const sb = supabase();
   const current = unwrap(
-    await sb.from('categories').select('archived_at').eq('id', id).overrideTypes<Array<{ archived_at: string | null }>, { merge: false }>(),
+    await sb
+      .from('categories')
+      .select('archived_at')
+      .eq('id', id)
+      .overrideTypes<Array<{ archived_at: string | null }>, { merge: false }>(),
   )[0];
   if (!current) throw new ApiError('not_found', 'Категория не найдена');
   const stamp = new Date().toISOString();
   if (isArchived) {
     await changeOne('categories', id, { archived_at: stamp });
-    check(await sb.from('subcategories').update({ archived_at: stamp }).eq('category_id', id).is('archived_at', null));
+    check(
+      await sb
+        .from('subcategories')
+        .update({ archived_at: stamp })
+        .eq('category_id', id)
+        .is('archived_at', null),
+    );
   } else {
     await changeOne('categories', id, { archived_at: null });
     if (current.archived_at) {
-      check(await sb.from('subcategories').update({ archived_at: null }).eq('category_id', id).eq('archived_at', current.archived_at));
+      check(
+        await sb
+          .from('subcategories')
+          .update({ archived_at: null })
+          .eq('category_id', id)
+          .eq('archived_at', current.archived_at),
+      );
     }
   }
   emitChange(['categories']);
@@ -112,7 +154,12 @@ export async function deleteCategory(id: string): Promise<void> {
   const sb = supabase();
   // Подкатегории удаляются каскадом, но на них могут ссылаться операции — тогда ошибка 23503.
   const rows = unwrap(
-    await sb.from('categories').delete().eq('id', id).select('id').overrideTypes<Array<{ id: string }>, { merge: false }>(),
+    await sb
+      .from('categories')
+      .delete()
+      .eq('id', id)
+      .select('id')
+      .overrideTypes<Array<{ id: string }>, { merge: false }>(),
   );
   if (rows.length === 0) throw new ApiError('forbidden');
   emitChange(['categories']);
@@ -121,7 +168,11 @@ export async function deleteCategory(id: string): Promise<void> {
 export async function createSubcategory(categoryId: string, name: string): Promise<void> {
   assertName(name);
   const householdId = await myHouseholdId();
-  check(await supabase().from('subcategories').insert({ household_id: householdId, category_id: categoryId, name: name.trim() }));
+  check(
+    await supabase()
+      .from('subcategories')
+      .insert({ household_id: householdId, category_id: categoryId, name: name.trim() }),
+  );
   emitChange(['categories']);
 }
 
@@ -130,40 +181,66 @@ export function renameSubcategory(id: string, name: string): Promise<void> {
   return changeOne('subcategories', id, { name: name.trim() });
 }
 
-async function activeSiblings(id: string): Promise<{ categoryId: string; activeCount: number; isCategoryArchived: boolean }> {
+async function activeSiblings(
+  id: string,
+): Promise<{ categoryId: string; activeCount: number; isCategoryArchived: boolean }> {
   const sb = supabase();
   const sub = unwrap(
-    await sb.from('subcategories').select('category_id, categories(archived_at)').eq('id', id)
-      .overrideTypes<Array<{ category_id: string; categories: { archived_at: string | null } | null }>, { merge: false }>(),
+    await sb
+      .from('subcategories')
+      .select('category_id, categories(archived_at)')
+      .eq('id', id)
+      .overrideTypes<
+        Array<{ category_id: string; categories: { archived_at: string | null } | null }>,
+        { merge: false }
+      >(),
   )[0];
   if (!sub) throw new ApiError('not_found', 'Подкатегория не найдена');
   const { count, error } = await sb
-    .from('subcategories').select('id', { count: 'exact', head: true }).eq('category_id', sub.category_id).is('archived_at', null);
+    .from('subcategories')
+    .select('id', { count: 'exact', head: true })
+    .eq('category_id', sub.category_id)
+    .is('archived_at', null);
   check({ error });
-  return { categoryId: sub.category_id, activeCount: count ?? 0, isCategoryArchived: Boolean(sub.categories?.archived_at) };
+  return {
+    categoryId: sub.category_id,
+    activeCount: count ?? 0,
+    isCategoryArchived: Boolean(sub.categories?.archived_at),
+  };
 }
 
 /** Последнюю активную подкатегорию архивировать нельзя (FR-2.2). */
 export async function setSubcategoryArchived(id: string, isArchived: boolean): Promise<void> {
   const { activeCount, isCategoryArchived } = await activeSiblings(id);
-  if (!isArchived && isCategoryArchived) throw new ApiError('validation', 'Сначала восстановите категорию');
+  if (!isArchived && isCategoryArchived)
+    throw new ApiError('validation', 'Сначала восстановите категорию');
   if (isArchived && activeCount <= 1) {
     throw new ApiError('validation', 'У категории должна остаться хотя бы одна подкатегория');
   }
-  await changeOne('subcategories', id, { archived_at: isArchived ? new Date().toISOString() : null });
+  await changeOne('subcategories', id, {
+    archived_at: isArchived ? new Date().toISOString() : null,
+  });
 }
 
 export async function deleteSubcategory(id: string): Promise<void> {
   const { activeCount } = await activeSiblings(id);
   const rows = unwrap(
-    await supabase().from('subcategories').select('archived_at').eq('id', id)
+    await supabase()
+      .from('subcategories')
+      .select('archived_at')
+      .eq('id', id)
       .overrideTypes<Array<{ archived_at: string | null }>, { merge: false }>(),
   );
   if (rows[0]?.archived_at === null && activeCount <= 1) {
     throw new ApiError('validation', 'У категории должна остаться хотя бы одна подкатегория');
   }
   const deleted = unwrap(
-    await supabase().from('subcategories').delete().eq('id', id).select('id').overrideTypes<Array<{ id: string }>, { merge: false }>(),
+    await supabase()
+      .from('subcategories')
+      .delete()
+      .eq('id', id)
+      .select('id')
+      .overrideTypes<Array<{ id: string }>, { merge: false }>(),
   );
   if (deleted.length === 0) throw new ApiError('forbidden');
   emitChange(['categories']);

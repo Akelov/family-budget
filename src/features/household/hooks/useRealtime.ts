@@ -16,7 +16,12 @@ export function useRealtime(householdId: string | null): void {
       .channel(`household-${householdId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'transactions', filter: `household_id=eq.${householdId}` },
+        {
+          event: '*',
+          schema: 'public',
+          table: 'transactions',
+          filter: `household_id=eq.${householdId}`,
+        },
         () => emitChange(['transactions', 'budgets', 'tags']),
       )
       .subscribe();

@@ -21,7 +21,10 @@ export default function LoginPage() {
       }}
       footer={
         <div className="flex flex-col gap-2 text-center text-sm">
-          <Link to={`/signup${next ? `?next=${encodeURIComponent(next)}` : ''}`} className="font-medium text-primary hover:underline">
+          <Link
+            to={`/signup${next ? `?next=${encodeURIComponent(next)}` : ''}`}
+            className="font-medium text-primary hover:underline"
+          >
             Нет аккаунта? Зарегистрироваться
           </Link>
           <Link to="/reset-password" className="text-muted-foreground hover:underline">

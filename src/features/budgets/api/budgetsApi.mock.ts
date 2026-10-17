@@ -9,7 +9,6 @@ import type { Budget, Period } from '@/shared/types/domain';
 import { type BudgetView, computeBudget } from '../model/budget';
 import type { BudgetInput } from './types';
 
-
 /** `budget_status`: активные бюджеты, посчитанные за период семьи. */
 export function fetchBudgetStatuses(period: Pick<Period, 'from' | 'to'>): Promise<BudgetView[]> {
   return request(() => {

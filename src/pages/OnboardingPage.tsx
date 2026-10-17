@@ -27,7 +27,8 @@ export default function OnboardingPage() {
   if (session.status === 'loading') return <Skeleton className="m-8 h-40" />;
   // Семья уже есть — сразу в приложение.
   if (session.data) return <Navigate to="/" replace />;
-  if (session.error instanceof ApiError && session.error.code === 'unauthorized') return <Navigate to="/login" replace />;
+  if (session.error instanceof ApiError && session.error.code === 'unauthorized')
+    return <Navigate to="/login" replace />;
 
   async function create() {
     if (!name.trim()) {
@@ -54,7 +55,8 @@ export default function OnboardingPage() {
         </span>
         <h1 className="text-xl font-semibold">Создайте семью</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Вы станете владельцем, а готовый набор категорий добавится сам. Близких пригласите по ссылке из настроек.
+          Вы станете владельцем, а готовый набор категорий добавится сам. Близких пригласите по
+          ссылке из настроек.
         </p>
         {pendingInvite && (
           <Link
@@ -73,20 +75,38 @@ export default function OnboardingPage() {
           }}
         >
           <Field id={`${id}-name`} label="Название семьи">
-            <TextInput id={`${id}-name`} value={name} maxLength={50} placeholder="Например, Семья Ивановых" onChange={(e) => setName(e.target.value)} />
+            <TextInput
+              id={`${id}-name`}
+              value={name}
+              maxLength={50}
+              placeholder="Например, Семья Ивановых"
+              onChange={(e) => setName(e.target.value)}
+            />
           </Field>
           <Field id={`${id}-me`} label="Ваше имя в семье">
-            <TextInput id={`${id}-me`} value={displayName} maxLength={40} onChange={(e) => setDisplayName(e.target.value)} />
+            <TextInput
+              id={`${id}-me`}
+              value={displayName}
+              maxLength={40}
+              onChange={(e) => setDisplayName(e.target.value)}
+            />
           </Field>
           {error && (
-            <p role="alert" className="rounded-xl bg-danger-bg px-3 py-2 text-sm text-danger-foreground">
+            <p
+              role="alert"
+              className="rounded-xl bg-danger-bg px-3 py-2 text-sm text-danger-foreground"
+            >
               {error}
             </p>
           )}
           <Button type="submit" isBlock size="lg" isLoading={isSaving}>
             Создать семью
           </Button>
-          <button type="button" onClick={() => void signOut()} className="text-sm text-muted-foreground hover:underline">
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="text-sm text-muted-foreground hover:underline"
+          >
             Выйти из аккаунта {email}
           </button>
         </form>

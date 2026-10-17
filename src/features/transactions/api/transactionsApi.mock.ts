@@ -14,7 +14,6 @@ import type { Summary, TransactionQuery } from '../model/types';
 import { MAX_TAGS_PER_TRANSACTION } from '../model/validation';
 import { PAGE_SIZE, type TransactionInput, type TransactionPage } from './types';
 
-
 /** `list_transactions`: порция истории по 50 операций. */
 export function fetchTransactionsPage(
   query: TransactionQuery,
@@ -44,7 +43,6 @@ export function fetchTransaction(id: string): Promise<Transaction> {
     return tx;
   });
 }
-
 
 /** Серверная проверка — дублирует клиентскую, как CHECK-ограничения и триггеры БД (§3.1). */
 function assertValidInput(db: DbState, input: TransactionInput): void {

@@ -18,8 +18,8 @@ export default function SignupPage() {
         </span>
         <h1 className="text-xl font-semibold">Проверьте почту</h1>
         <p className="text-sm text-muted-foreground">
-          Мы отправили письмо на <b className="text-foreground">{sentTo}</b>. Откройте ссылку из письма — и вы окажетесь в
-          приложении. Письма нет? Загляните в «Спам».
+          Мы отправили письмо на <b className="text-foreground">{sentTo}</b>. Откройте ссылку из
+          письма — и вы окажетесь в приложении. Письма нет? Загляните в «Спам».
         </p>
         <Link to="/login" className="text-sm font-medium text-primary hover:underline">
           Ко входу

@@ -5,7 +5,6 @@ import type { Period, TransactionType } from '@/shared/types/domain';
 import { reportByCategory, reportBySubcategory, reportByTag } from '../model/aggregate';
 import type { Report } from './types';
 
-
 function periodTransactions(period: Pick<Period, 'from' | 'to'>) {
   return readDb().transactions.filter(
     (tx) => tx.deletedAt === null && tx.date >= period.from && tx.date <= period.to,

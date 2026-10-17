@@ -37,13 +37,24 @@ export async function fetchSession(): Promise<Session> {
   )[0];
   if (!me) throw new ApiError('no_household');
   const [householdRows, memberRows] = await Promise.all([
-    sb.from('households').select('id, name, period_mode, period_start_day').eq('id', me.household_id)
+    sb
+      .from('households')
+      .select('id, name, period_mode, period_start_day')
+      .eq('id', me.household_id)
       .overrideTypes<HouseholdRow[], { merge: false }>(),
-    sb.from('members').select(MEMBER_COLUMNS).order('created_at').overrideTypes<MemberRow[], { merge: false }>(),
+    sb
+      .from('members')
+      .select(MEMBER_COLUMNS)
+      .order('created_at')
+      .overrideTypes<MemberRow[], { merge: false }>(),
   ]);
   const household = unwrap(householdRows)[0];
   if (!household) throw new ApiError('no_household');
-  return { household: toHousehold(household), member: toMember(me), members: unwrap(memberRows).map(toMember) };
+  return {
+    household: toHousehold(household),
+    member: toMember(me),
+    members: unwrap(memberRows).map(toMember),
+  };
 }
 
 /** Создание семьи с готовым набором категорий (RPC `create_household`). */
@@ -86,8 +97,12 @@ export async function updateProfile(patch: {
       .from('members')
       .update({
         ...(patch.displayName !== undefined ? { display_name: patch.displayName.trim() } : {}),
-        ...(patch.personalPeriodMode !== undefined ? { personal_period_mode: patch.personalPeriodMode } : {}),
-        ...(patch.personalPeriodStartDay !== undefined ? { personal_period_start_day: patch.personalPeriodStartDay } : {}),
+        ...(patch.personalPeriodMode !== undefined
+          ? { personal_period_mode: patch.personalPeriodMode }
+          : {}),
+        ...(patch.personalPeriodStartDay !== undefined
+          ? { personal_period_start_day: patch.personalPeriodStartDay }
+          : {}),
       })
       .eq('id', session.member.id)
       .select(MEMBER_COLUMNS)
@@ -100,7 +115,11 @@ export async function updateProfile(patch: {
 
 async function updateMember(memberId: string, values: Record<string, string>): Promise<void> {
   const rows = unwrap(
-    await supabase().from('members').update(values).eq('id', memberId).select('id')
+    await supabase()
+      .from('members')
+      .update(values)
+      .eq('id', memberId)
+      .select('id')
       .overrideTypes<Array<{ id: string }>, { merge: false }>(),
   );
   if (rows.length === 0) throw new ApiError('forbidden');

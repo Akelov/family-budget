@@ -33,12 +33,21 @@ export function DeleteHouseholdCard() {
   }
 
   return (
-    <SettingsCard title="Удалить семью" description="Удалятся все операции, категории и бюджеты — у всех участников. Отменить нельзя.">
+    <SettingsCard
+      title="Удалить семью"
+      description="Удалятся все операции, категории и бюджеты — у всех участников. Отменить нельзя."
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <Field id={id} label={`Введите название семьи: ${household.name}`} className="flex-1">
           <TextInput id={id} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
         </Field>
-        <Button variant="danger" icon={<Trash2 />} isLoading={isDeleting} disabled={confirm.trim() !== household.name} onClick={() => void remove()}>
+        <Button
+          variant="danger"
+          icon={<Trash2 />}
+          isLoading={isDeleting}
+          disabled={confirm.trim() !== household.name}
+          onClick={() => void remove()}
+        >
           Удалить навсегда
         </Button>
       </div>

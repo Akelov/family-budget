@@ -23,6 +23,9 @@ describe('перевод строк Supabase в доменные типы', () =
   });
 
   it('цвет вне палитры заменяется на «прочее» (12)', () => {
-    expect(toCategory({ id: 'c', type: 'expense', name: 'X', color: 99, icon: 'x', archived_at: null }).color).toBe(12);
+    expect(
+      toCategory({ id: 'c', type: 'expense', name: 'X', color: 99, icon: 'x', archived_at: null })
+        .color,
+    ).toBe(12);
   });
 });

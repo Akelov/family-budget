@@ -68,10 +68,16 @@ export interface BudgetRow {
 
 export const MEMBER_COLUMNS =
   'id, household_id, display_name, role, personal_period_mode, personal_period_start_day, removed_at';
-export const BUDGET_COLUMNS = 'id, name, amount::text, archived_at, created_at, budget_items(category_id, subcategory_id)';
+export const BUDGET_COLUMNS =
+  'id, name, amount::text, archived_at, created_at, budget_items(category_id, subcategory_id)';
 
 export function toHousehold(row: HouseholdRow): Household {
-  return { id: row.id, name: row.name, periodMode: row.period_mode, periodStartDay: row.period_start_day };
+  return {
+    id: row.id,
+    name: row.name,
+    periodMode: row.period_mode,
+    periodStartDay: row.period_start_day,
+  };
 }
 
 export function toMember(row: MemberRow): Member {
@@ -91,7 +97,14 @@ function toColor(value: number): CategoryColor {
 }
 
 export function toCategory(row: CategoryRow): Category {
-  return { id: row.id, type: row.type, name: row.name, color: toColor(row.color), icon: row.icon, archivedAt: row.archived_at };
+  return {
+    id: row.id,
+    type: row.type,
+    name: row.name,
+    color: toColor(row.color),
+    icon: row.icon,
+    archivedAt: row.archived_at,
+  };
 }
 
 export function toSubcategory(row: SubcategoryRow): Subcategory {
@@ -103,7 +116,10 @@ export function toTag(row: TagRow): Tag {
 }
 
 /** Элемент бюджета: ровно одно из полей заполнено (CHECK в базе). */
-function toBudgetItem(row: { category_id: string | null; subcategory_id: string | null }): BudgetItem[] {
+function toBudgetItem(row: {
+  category_id: string | null;
+  subcategory_id: string | null;
+}): BudgetItem[] {
   if (row.category_id) return [{ kind: 'category', categoryId: row.category_id }];
   if (row.subcategory_id) return [{ kind: 'subcategory', subcategoryId: row.subcategory_id }];
   return [];

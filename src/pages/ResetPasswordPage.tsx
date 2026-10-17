@@ -11,7 +11,9 @@ export default function ResetPasswordPage() {
     return (
       <div className="flex flex-col gap-3 text-center">
         <h1 className="text-xl font-semibold">Письмо отправлено</h1>
-        <p className="text-sm text-muted-foreground">Если такой email зарегистрирован, в письме будет ссылка для нового пароля.</p>
+        <p className="text-sm text-muted-foreground">
+          Если такой email зарегистрирован, в письме будет ссылка для нового пароля.
+        </p>
         <Link to="/login" className="text-sm font-medium text-primary hover:underline">
           Ко входу
         </Link>

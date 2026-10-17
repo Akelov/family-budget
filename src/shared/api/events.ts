@@ -8,7 +8,13 @@ type Listener = (topics: readonly DataTopic[]) => void;
 
 const listeners = new Set<Listener>();
 
-export const ALL_TOPICS: readonly DataTopic[] = ['session', 'categories', 'tags', 'transactions', 'budgets'];
+export const ALL_TOPICS: readonly DataTopic[] = [
+  'session',
+  'categories',
+  'tags',
+  'transactions',
+  'budgets',
+];
 
 /** Сообщить об изменении данных. */
 export function emitChange(topics: readonly DataTopic[]): void {

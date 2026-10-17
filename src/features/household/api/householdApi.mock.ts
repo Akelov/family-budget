@@ -4,7 +4,6 @@ import { currentMember, readDb, request, resetDb, writeDb } from '@/shared/api/m
 import type { FamilyPeriodMode, Household, Member, Role } from '@/shared/types/domain';
 import type { Session } from './types';
 
-
 /** Семья, текущий участник и список участников (включая бывших — для имён авторов). */
 export function fetchSession(): Promise<Session> {
   return request(() => {

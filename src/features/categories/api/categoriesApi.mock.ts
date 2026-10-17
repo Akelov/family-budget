@@ -12,7 +12,6 @@ import {
 } from '../model/rules';
 import type { CategoriesData, NewCategory } from './types';
 
-
 function assertCanManage(db: DbState): void {
   if (!can(currentMember(db).role, 'categories.manage')) throw new ApiError('forbidden');
 }
@@ -29,7 +28,6 @@ export function fetchCategories(): Promise<CategoriesData> {
     return { categories: db.categories, subcategories: db.subcategories };
   });
 }
-
 
 export function createCategory(input: NewCategory): Promise<Category> {
   return request(() => {

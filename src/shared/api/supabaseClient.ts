@@ -11,7 +11,8 @@ let client: SupabaseClient | null = null;
  * @throws {Error} если приложение запущено без настроек Supabase (демо-режим)
  */
 export function supabase(): SupabaseClient {
-  if (!isSupabaseEnabled) throw new Error('Supabase не настроен: приложение работает в демо-режиме');
+  if (!isSupabaseEnabled)
+    throw new Error('Supabase не настроен: приложение работает в демо-режиме');
   client ??= createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
   });
