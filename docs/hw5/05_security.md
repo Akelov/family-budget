@@ -37,3 +37,16 @@
 | Журнал ошибок: добавить можно, прочитать — 0 строк | да |
 | Владелец назначает Марию администратором — теперь она переименовывает категорию | да |
 | Анонимный посетитель читает операции | `permission denied for table transactions` |
+
+## Проверка на настоящем сервере Supabase
+
+Владелец продукта выполнил проверки из [методички](check_database.md) в SQL Editor Supabase:
+пользователь test1 создал семью и операцию, затем запросы от имени test2 и анонимного посетителя.
+
+| test2 видит данные семьи test1 | Посетитель без входа |
+|:-:|:-:|
+| ![0 операций, 0 категорий, 0 семей](screenshots/rls_other_user_sees_nothing.png) | ![permission denied for table transactions](screenshots/rls_anon_permission_denied.png) |
+| 0 операций, 0 категорий, 0 семей | `42501: permission denied for table transactions` |
+
+Подсказку Supabase `GRANT SELECT ON public.transactions TO anon` выполнять **нельзя**: она открыла бы
+таблицу посетителям без входа. Ошибка здесь — ожидаемый и правильный результат.
