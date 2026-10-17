@@ -1,0 +1,15 @@
+{
+  "note": "Учебный журнал для проверки промптов анализа. Записи chunk_load, db_42501 и test_entry повторяют реальные случаи ДЗ5–ДЗ6; load_retry и ui_crash добавлены искусственно, чтобы проверить, отличает ли AI шум от настоящей ошибки.",
+  "logs": [
+    { "time": "2026-10-17T14:03:58Z", "level": "info", "version": "2604a83", "screen": "settings", "code": "test_entry", "message": "Проверочная запись журнала ошибок" },
+    { "time": "2026-10-17T14:15:49Z", "level": "info", "version": "2604a83", "screen": "settings", "code": "test_entry", "message": "Проверочная запись журнала ошибок" },
+    { "time": "2026-10-17T14:15:59Z", "level": "info", "version": "2604a83", "screen": "settings", "code": "test_entry", "message": "Проверочная запись журнала ошибок" },
+    { "time": "2026-10-17T13:57:49Z", "level": "error", "version": "d7dcae1", "screen": "login", "code": "db_42501", "message": "permission denied for table client_errors" },
+    { "time": "2026-10-17T20:24:02Z", "level": "warning", "version": "0a5aa8e", "screen": "reports", "code": "chunk_load", "message": "Failed to fetch dynamically imported module: /assets/ReportsPage-Bq1x.js" },
+    { "time": "2026-10-17T20:24:10Z", "level": "warning", "version": "0a5aa8e", "screen": "plan", "code": "chunk_load", "message": "Failed to fetch dynamically imported module: /assets/PlanPage-C7kd.js" },
+    { "time": "2026-10-17T20:24:31Z", "level": "warning", "version": "0a5aa8e", "screen": "reports", "code": "chunk_load", "message": "Failed to fetch dynamically imported module: /assets/ReportsPage-Bq1x.js" },
+    { "time": "2026-10-17T21:02:11Z", "level": "warning", "version": "22075af", "screen": "operations", "code": "load_retry", "message": "Повтор 1: network" },
+    { "time": "2026-10-17T21:02:12Z", "level": "warning", "version": "22075af", "screen": "operations", "code": "load_retry", "message": "Повтор 2: network" },
+    { "time": "2026-10-17T21:40:05Z", "level": "error", "version": "22075af", "screen": "reports", "code": "ui_crash", "message": "TypeError: Cannot read properties of undefined (reading 'color')" }
+  ]
+}

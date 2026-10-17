@@ -54,6 +54,7 @@ jobs:
           # Settings → Secrets and variables → Actions → Variables.
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+          VITE_APP_VERSION: ${{ github.sha }}
 
   deploy-production:
     name: Деплой на Vercel (production)
@@ -70,6 +71,8 @@ jobs:
       VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
       # Номер счётчика Яндекс.Метрики — только для production: превью не засоряют статистику.
       VITE_YANDEX_METRIKA_ID: ${{ vars.VITE_YANDEX_METRIKA_ID }}
+      # Версия сборки в журнале ошибок: видно, после какой публикации появилась ошибка.
+      VITE_APP_VERSION: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

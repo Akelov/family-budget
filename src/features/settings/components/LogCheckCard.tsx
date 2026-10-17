@@ -1,7 +1,7 @@
 import { ClipboardCheck } from 'lucide-react';
 import { useState } from 'react';
 
-import { logClientError } from '@/shared/lib/logger';
+import { logInfo } from '@/shared/lib/logger';
 import { Button } from '@/shared/ui/Button';
 import { useToast } from '@/shared/ui/toast/toastContext';
 
@@ -17,7 +17,7 @@ export function LogCheckCard() {
 
   async function sendTestEntry() {
     setIsSending(true);
-    const isSaved = await logClientError({
+    const isSaved = await logInfo({
       screen: 'settings',
       code: 'test_entry',
       message: 'Проверочная запись журнала ошибок',

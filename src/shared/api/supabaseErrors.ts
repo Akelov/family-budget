@@ -1,5 +1,5 @@
 import { currentScreen } from '@/shared/lib/currentScreen';
-import { logClientError } from '@/shared/lib/logger';
+import { logError } from '@/shared/lib/logger';
 
 import { ApiError, type ApiErrorCode } from './errors';
 
@@ -58,7 +58,7 @@ export function toApiError(error: SupabaseLikeError | null | undefined): ApiErro
   // Неизвестный код (в том числе HTTP 5xx) — «Не удалось загрузить данные» без технических
   // подробностей. Исходный текст базы нужен разработчику, поэтому он уходит в журнал (ТЗ §6.4).
   if (!code) {
-    void logClientError({
+    void logError({
       screen: currentScreen(),
       code: `db_${error.code ?? error.status ?? 'unknown'}`,
       message: message || 'Пустой ответ сервера',

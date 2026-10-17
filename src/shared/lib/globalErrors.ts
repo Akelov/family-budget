@@ -1,5 +1,5 @@
 import { currentScreen } from './currentScreen';
-import { logClientError } from './logger';
+import { logError } from './logger';
 
 function reasonMessage(reason: unknown): string {
   if (reason instanceof Error) return reason.message;
@@ -18,7 +18,7 @@ function reasonMessage(reason: unknown): string {
 export function installGlobalErrorLogging(target: EventTarget = window): () => void {
   const onError = (event: Event) => {
     const message = event instanceof ErrorEvent ? event.message : 'Ошибка без описания';
-    void logClientError({
+    void logError({
       screen: currentScreen(),
       code: 'uncaught',
       message: message || 'Ошибка без описания',
@@ -26,7 +26,7 @@ export function installGlobalErrorLogging(target: EventTarget = window): () => v
   };
   const onRejection = (event: Event) => {
     const reason: unknown = 'reason' in event ? event.reason : undefined;
-    void logClientError({
+    void logError({
       screen: currentScreen(),
       code: 'unhandled_rejection',
       message: reasonMessage(reason),

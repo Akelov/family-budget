@@ -1,4 +1,5 @@
 import { type HealthConfig, runHealthChecks } from './_lib/health.js';
+import { serverLog } from './_lib/log.js';
 
 /**
  * GET /api/health — состояние приложения для мониторинга (UptimeRobot, GitHub Actions).
@@ -13,6 +14,15 @@ export async function GET(): Promise<Response> {
     version: process.env.APP_VERSION,
   };
   const report = await runHealthChecks(config, (url, init) => fetch(url, init));
+  // ok — info (время ответа сервисов для истории); degraded — warning с причиной.
+  serverLog(report.status === 'ok' ? 'info' : 'warning', 'api/health', 'health_check', {
+    status: report.status,
+    version: report.version,
+    authMs: report.checks.auth.latencyMs,
+    databaseMs: report.checks.database.latencyMs,
+    ...(report.checks.auth.error ? { authError: report.checks.auth.error } : {}),
+    ...(report.checks.database.error ? { databaseError: report.checks.database.error } : {}),
+  });
   return new Response(JSON.stringify(report), {
     status: report.status === 'ok' ? 200 : 503,
     headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },

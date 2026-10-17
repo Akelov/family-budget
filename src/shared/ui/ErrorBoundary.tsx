@@ -1,6 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
-import { logClientError } from '@/shared/lib/logger';
+import { logError, logWarning } from '@/shared/lib/logger';
 import { isChunkLoadError, reloadForNewVersion } from '@/shared/lib/staleBuild';
 
 import { ErrorState } from './ErrorState';
@@ -31,7 +31,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     const isStale = isChunkLoadError(error);
     // Файл раздела старой версии удалён после деплоя — лечится перезагрузкой (ДЗ6).
     if (isStale && reloadForNewVersion()) this.setState({ isUpdating: true });
-    void logClientError({
+    // Устаревшая вкладка — warning: сайт справляется сам; падение экрана — error.
+    void (isStale ? logWarning : logError)({
       screen: this.props.screen,
       code: isStale ? 'chunk_load' : 'ui_crash',
       message: error.message,

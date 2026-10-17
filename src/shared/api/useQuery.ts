@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { logClientError } from '@/shared/lib/logger';
+import { logError, logWarning } from '@/shared/lib/logger';
 
 import { ApiError, isRetryable } from './errors';
 import { type DataTopic, subscribeChanges } from './events';
@@ -23,13 +23,19 @@ function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function withRetries<T>(fetcher: () => Promise<T>): Promise<T> {
+async function withRetries<T>(fetcher: () => Promise<T>, screen: string): Promise<T> {
   for (let attempt = 0; ; attempt += 1) {
     try {
       return await fetcher();
     } catch (error) {
       const delay = RETRY_DELAYS_MS[attempt];
       if (!isRetryable(error) || delay === undefined) throw error;
+      // Сбой сети или сервера, который сайт пытается пережить повтором, — warning (ДЗ6).
+      void logWarning({
+        screen,
+        code: 'load_retry',
+        message: `Повтор ${attempt + 1}: ${error instanceof ApiError ? error.code : 'unknown'}`,
+      });
       await wait(delay);
     }
   }
@@ -65,7 +71,7 @@ export function useQuery<T>(
       const id = ++requestId.current;
       if (isBackground) setIsRefreshing(true);
       else setState({ status: 'loading', data: undefined, error: undefined });
-      withRetries(() => fetcherRef.current())
+      withRetries(() => fetcherRef.current(), key.split(':')[0] ?? 'unknown')
         .then((data) => {
           if (id === requestId.current) setState({ status: 'success', data, error: undefined });
         })
@@ -75,7 +81,7 @@ export function useQuery<T>(
           // Ошибки сервера уже записаны в toApiError — там есть исходный текст базы; сеть, права
           // и «нет семьи» — ожидаемые ситуации, их не логируем.
           if (!(error instanceof ApiError)) {
-            void logClientError({
+            void logError({
               screen: key.split(':')[0] ?? 'unknown',
               code: 'load_failed',
               message: error instanceof Error ? error.message : String(error),
