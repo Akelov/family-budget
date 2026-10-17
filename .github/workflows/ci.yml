@@ -14,8 +14,8 @@ jobs:
     name: Линтер, типы, тесты, сборка
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -30,7 +30,7 @@ jobs:
       # GitHub Pages не знает маршрутов SPA: 404.html с тем же кодом открывает приложение
       # по прямой ссылке вроде /family-budget/reports.
       - run: cp dist/index.html dist/404.html
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         if: github.ref == 'refs/heads/main'
         with:
           path: dist

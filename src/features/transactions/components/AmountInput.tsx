@@ -33,12 +33,13 @@ export const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(functi
           readOnly={isReadOnly}
           onChange={(e) => onChange(e.target.value.replace(/[^\d.,\s]/g, ''))}
           onBlur={onBlur}
-          // Ширина по содержимому: знак ₽ стоит сразу за суммой, а не у края поля.
+          // Ширина по содержимому и выравнивание вправо: знак ₽ стоит сразу за суммой
+          // (на скриншоте 390 px он «отъезжал» от числа к краю поля).
           style={{ width: `${Math.max(1, value.length) + 0.5}ch` }}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-error` : undefined}
           className={cn(
-            'num max-w-[260px] min-w-[1.5ch] bg-transparent text-center text-[40px] leading-tight font-bold tracking-tight outline-none placeholder:text-border',
+            'num max-w-[260px] min-w-[1.5ch] bg-transparent text-right text-[40px] leading-tight font-bold tracking-tight outline-none placeholder:text-border',
             error && 'text-destructive',
           )}
         />
