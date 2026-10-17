@@ -1,4 +1,4 @@
-import { Plus, Wallet } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { NavLink } from 'react-router';
 
 import { useReference } from '@/features/household/hooks/referenceContext';
@@ -6,6 +6,7 @@ import { useTransactionForm } from '@/features/transactions/hooks/transactionFor
 import { cn } from '@/shared/lib/cn';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
+import { AppLogo } from '@/shared/ui/AppLogo';
 
 import { NAV_ITEMS } from './navItems';
 import { useNavTarget } from './useNavTarget';
@@ -21,9 +22,7 @@ export function TopBar() {
     <header className="sticky top-0 z-30 hidden border-b border-border bg-card/95 backdrop-blur lg:block">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-6 px-6">
         <NavLink to="/" className="flex min-w-0 items-center gap-2.5 font-semibold">
-          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-white">
-            <Wallet className="size-5" aria-hidden />
-          </span>
+          <AppLogo />
           <span className="truncate">{household.name}</span>
         </NavLink>
         <nav aria-label="Разделы" className="flex items-center gap-1">

@@ -1,3 +1,5 @@
+import { FamilyTitle } from '@/features/household/components/FamilyTitle';
+import { useReference } from '@/features/household/hooks/referenceContext';
 import { PeriodSwitcher } from '@/features/period/components/PeriodSwitcher';
 import { usePeriod } from '@/features/period/hooks/usePeriod';
 import { OperationsToolbar } from '@/features/transactions/components/OperationsToolbar';
@@ -10,6 +12,7 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 
 /** Экран «Операции» (FR-3.7): период, сводка, поиск, фильтры и история. */
 export default function OperationsPage() {
+  const { household } = useReference();
   const periodState = usePeriod('personal');
   const { query, search, filters, setSearch, setFilters, resetAll } = useTransactionQuery(
     periodState.period,
@@ -19,7 +22,7 @@ export default function OperationsPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Семейный бюджет" title="Операции" />
+      <PageHeader eyebrow={<FamilyTitle name={household.name} />} title="Операции" />
       <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(320px,380px)_1fr] lg:items-start lg:gap-6">
         <PeriodSwitcher state={periodState} />
         <SummaryCards summary={summary.data} isFiltered={isFiltered} />

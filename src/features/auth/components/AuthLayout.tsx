@@ -1,5 +1,6 @@
-import { Wallet } from 'lucide-react';
 import { Navigate, Outlet } from 'react-router';
+
+import { AppLogo } from '@/shared/ui/AppLogo';
 
 import { useAuth } from '../hooks/authContext';
 
@@ -13,9 +14,7 @@ export function AuthLayout() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-4 py-10">
       <div className="mb-6 flex items-center gap-2.5 text-lg font-semibold">
-        <span className="grid size-10 place-items-center rounded-xl bg-primary text-white">
-          <Wallet className="size-5" aria-hidden />
-        </span>
+        <AppLogo size="lg" />
         Семейный бюджет
       </div>
       <div className="w-full max-w-sm rounded-2xl bg-card p-6 shadow-card">
