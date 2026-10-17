@@ -120,6 +120,11 @@ order by created_at desc
 limit 20;
 ```
 
+Результат на сервере: проверочные записи в `client_errors` (время в базе — UTC,
+14:15 = 17:15 по Москве):
+
+![Записи test_entry в таблице client_errors](screenshots/client_errors_test_entry.png)
+
 ## Тесты
 
 | Файл | Что проверяет |
