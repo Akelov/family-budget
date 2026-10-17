@@ -20,8 +20,11 @@ describe('Экран «Операции»', () => {
     const { user } = renderApp('/');
     await screen.findAllByRole('region', { name: /17 октября/ });
     await user.type(screen.getByRole('searchbox', { name: 'Поиск по операциям' }), 'замена масла');
-    await waitFor(() => expect(screen.getAllByText(/Замена масла/).length).toBeGreaterThan(0));
-    await waitFor(() => expect(screen.queryByText(/Перекрёсток/)).not.toBeInTheDocument());
+    // Поиск срабатывает через 300 мс после ввода плюс задержка мок-сервера: на медленной машине CI
+    // это дольше стандартной 1 с у waitFor, поэтому ожидание — до 5 с.
+    const slow = { timeout: 5000 };
+    await waitFor(() => expect(screen.queryAllByText(/Перекрёсток/)).toHaveLength(0), slow);
+    expect(screen.getAllByText(/Замена масла/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/по результатам поиска и фильтров/i).length).toBeGreaterThan(0);
   });
 
