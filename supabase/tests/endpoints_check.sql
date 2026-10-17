@@ -91,6 +91,20 @@ begin
     r := pg_temp.t(r, 'GET /transactions', 'гость читает таблицу напрямую', '42501', null,
       'select count(*) >= 0 from public.transactions');
     -- Чтение работает с правами пользователя (security invoker): RLS просто не отдаёт строки.
+    -- Supabase по умолчанию открывает новые функции всем ролям API, в том числе гостю
+    -- (найдено Security Advisor, ДЗ6). Каждая функция должна быть закрыта от anon явно.
+    r := pg_temp.t(r, 'delete_household', 'гость вызывает функцию', '42501', null,
+      'select true from public.delete_household()');
+    r := pg_temp.t(r, 'merge_tags', 'гость вызывает функцию', '42501', null,
+      'select true from public.merge_tags(gen_random_uuid(), gen_random_uuid())');
+    r := pg_temp.t(r, 'leave_household', 'гость вызывает функцию', '42501', null,
+      'select true from public.leave_household()');
+    r := pg_temp.t(r, 'is_manager', 'гость вызывает служебную функцию', '42501', null,
+      'select public.is_manager() is not null');
+    r := pg_temp.t(r, 'editable_transaction', 'служебная функция недоступна напрямую', '42501', un,
+      'select (public.editable_transaction(gen_random_uuid())).id is null');
+    r := pg_temp.t(r, 'require_household', 'служебная функция недоступна напрямую', '42501', un,
+      'select public.require_household() is null');
     r := pg_temp.t(r, 'list_transactions', 'вошёл, но нет семьи — пустой список (RLS)', 'OK', un,
       'select count(*) = 0 from public.list_transactions(current_date - 30, current_date)');
 

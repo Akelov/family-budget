@@ -107,7 +107,7 @@ Row Level Security (RLS): база по токену узнаёт пользов
 
 1. Зарегистрироваться на [supabase.com](https://supabase.com) и создать проект
    (тариф Free, ближайший регион). Пароль базы сохранить у себя — в репозиторий он не нужен.
-2. **SQL Editor** → по очереди вставить и выполнить (Run) 4 миграции из `supabase/migrations/`:
+2. **SQL Editor** → по очереди вставить и выполнить (Run) 5 миграций из `supabase/migrations/`:
 
    | № | Файл | Что создаёт |
    |---|------|-------------|
@@ -115,6 +115,7 @@ Row Level Security (RLS): база по токену узнаёт пользов
    | 2 | `20261017130000_api_functions.sql` | серверные функции (RPC) |
    | 3 | `20261017140000_rls_policies.sql` | правила доступа RLS, закрывает доступ гостю |
    | 4 | `20261017150000_app_integration.sql` | выход из семьи, удаление семьи, объединение тегов, Realtime |
+   | 5 | `20261017160000_security_hardening.sql` | закрывает функции от гостя, закрепляет `search_path` (ДЗ6, Security Advisor) |
 
    Если Supabase предупредит о «destructive operations» — это нормально (миграции удаляют
    старые права), подтвердить запуск.
@@ -127,7 +128,7 @@ Row Level Security (RLS): база по токену узнаёт пользов
 5. **Project Settings → API Keys:** скопировать адрес проекта и **публичный** ключ
    `sb_publishable_…` (он же `anon`). Ключ `sb_secret_…` / `service_role` никуда не копировать.
 6. Проверка: **SQL Editor** → содержимое `supabase/tests/endpoints_check.sql` → Run.
-   Ожидается 70 строк с ✅ ([08_api_testing.md](08_api_testing.md)).
+   Ожидается 76 строк с ✅ ([08_api_testing.md](08_api_testing.md)).
 
 ### 2.2. Сайт на своём компьютере
 
