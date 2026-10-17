@@ -2,7 +2,8 @@
 
 | Концепция | Чат v0 |
 |---|---|
-| 1. Минимализм | https://v0.app/chat/unhaQk2qf8t |
+| 1. Минимализм | https://v0.app/chat/unhaQk2qf8t (первое сообщение) |
+| 4. Итоговая (Минимализм + десктоп из Корпоративного) | https://v0.app/chat/unhaQk2qf8t (второе сообщение в том же чате) |
 | 2. Яркий дашборд | https://v0.app/chat/pX6nE6neIxD |
 | 3. Корпоративный | https://v0.app/chat/s7GaUbQP9VP |
 
