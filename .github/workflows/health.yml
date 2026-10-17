@@ -1,0 +1,38 @@
+name: Мониторинг (health check)
+
+# Запасной мониторинг к UptimeRobot: раз в час проверяет /api/health. Если сайт, вход
+# или база не отвечают, запуск падает — GitHub присылает письмо владельцу репозитория.
+# Заодно регулярные запросы не дают бесплатному проекту Supabase «уснуть» (пауза после
+# 7 дней без активности).
+
+on:
+  schedule:
+    - cron: '17 * * * *' # каждый час в :17 (не в :00 — в начале часа очереди GitHub длиннее)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    name: Проверка /api/health
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SITE_URL: https://family-budget-sable-nu.vercel.app
+    steps:
+      - name: Запрос к /api/health (3 попытки)
+        run: |
+          for attempt in 1 2 3; do
+            code=$(curl -s -o health.json -w '%{http_code}' --max-time 20 "$SITE_URL/api/health" || echo 000)
+            echo "Попытка $attempt: HTTP $code $(cat health.json 2>/dev/null)"
+            if [ "$code" = "200" ] && grep -q '"status":"ok"' health.json; then
+              echo "### ✅ Приложение работает" >> "$GITHUB_STEP_SUMMARY"
+              echo '```json' >> "$GITHUB_STEP_SUMMARY"; cat health.json >> "$GITHUB_STEP_SUMMARY"; echo '```' >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "### ❌ Приложение недоступно или работает с ошибками" >> "$GITHUB_STEP_SUMMARY"
+          echo "::error::/api/health не ответил \"ok\" за 3 попытки"
+          exit 1

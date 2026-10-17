@@ -29,7 +29,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: false,
     setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'api/**/*.test.ts'],
     css: false,
     restoreMocks: true,
     // Интеграционные тесты рендерят приложение целиком; под нагрузкой CI 5 секунд по умолчанию мало.

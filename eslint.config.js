@@ -24,6 +24,16 @@ export default tseslint.config(
     },
   },
   {
+    // Серверные функции Vercel (/api): те же строгие правила, окружение Node.
+    extends: [js.configs.recommended, ...tseslint.configs.strict],
+    files: ['api/**/*.ts'],
+    languageOptions: { ecmaVersion: 2022, globals: globals.node },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/ban-ts-comment': 'error',
+    },
+  },
+  {
     // В роутере объявлены ленивые страницы — это не компоненты для Fast Refresh.
     files: ['src/app/router.tsx'],
     rules: { 'react-refresh/only-export-components': 'off' },

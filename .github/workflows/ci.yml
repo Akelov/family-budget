@@ -92,7 +92,11 @@ jobs:
       - name: Публикация
         id: deploy
         run: |
-          url=$(npx --yes "$VERCEL_CLI" deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          # --env: переменные для серверной функции /api/health (публичный адрес и ключ, версия).
+          url=$(npx --yes "$VERCEL_CLI" deploy --prebuilt --prod --token="$VERCEL_TOKEN" \
+            --env VITE_SUPABASE_URL="$VITE_SUPABASE_URL" \
+            --env VITE_SUPABASE_ANON_KEY="$VITE_SUPABASE_ANON_KEY" \
+            --env APP_VERSION="$GITHUB_SHA")
           # Постоянный адрес сайта (alias) — самый короткий из адресов *.vercel.app этой публикации.
           site=$(npx --yes "$VERCEL_CLI" inspect "$url" --token="$VERCEL_TOKEN" 2>&1 \
             | grep -oE 'https://[a-z0-9.-]+\.vercel\.app' | awk '{ print length, $0 }' | sort -n | head -1 | cut -d' ' -f2)
@@ -107,6 +111,10 @@ jobs:
             echo "$site$path → HTTP $code"
             [ "$code" = "200" ] || exit 1
           done
+          # Проверка здоровья: сайт + вход + база данных Supabase.
+          health=$(curl -s "$site/api/health")
+          echo "$site/api/health → $health"
+          echo "$health" | grep -q '"status":"ok"'
 
   deploy-preview:
     name: Деплой на Vercel (preview)

@@ -15,8 +15,8 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "typecheck": "tsc -b",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\""
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"api/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"api/**/*.ts\""
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.2",
