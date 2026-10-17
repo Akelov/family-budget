@@ -7,5 +7,6 @@
 export const SUPABASE_URL: string = import.meta.env.VITE_SUPABASE_URL ?? '';
 export const SUPABASE_ANON_KEY: string = import.meta.env.VITE_SUPABASE_ANON_KEY ?? '';
 
-export const isSupabaseEnabled: boolean =
-  import.meta.env.MODE !== 'test' && SUPABASE_URL !== '' && SUPABASE_ANON_KEY !== '';
+// Значение подставляет сборщик (vite.config.ts, define): ветку демо-режима он выбрасывает
+// из рабочей сборки целиком.
+export const isSupabaseEnabled: boolean = __SUPABASE_ENABLED__;

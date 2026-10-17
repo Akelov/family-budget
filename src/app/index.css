@@ -13,7 +13,8 @@
   --color-muted: #eef1ef;
   --color-muted-foreground: #6a716d;
   --color-border: #e4e7e5;
-  --color-primary: #33875c;
+  /* Было #33875c: контраст с белым 4,41 — ниже нормы WCAG AA 4,5 (Lighthouse, ДЗ6). Стало 4,72. */
+  --color-primary: #2f8257;
   --color-primary-hover: #2b744f;
   --color-primary-soft: #b9cfc2;
   --color-accent: #e1f4e8;
