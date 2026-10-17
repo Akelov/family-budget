@@ -10,6 +10,7 @@ import { Modal } from '@/shared/ui/Modal';
 import { TextInput } from '@/shared/ui/TextInput';
 import { useToast } from '@/shared/ui/toast/toastContext';
 import type { Budget, BudgetItem } from '@/shared/types/domain';
+import { reachGoal } from '@/shared/lib/analytics';
 
 import { archiveBudget, createBudget, updateBudget } from '../api/budgetsApi';
 import { BudgetItemsTree } from './BudgetItemsTree';
@@ -53,6 +54,7 @@ export function BudgetForm({ budget, onClose }: BudgetFormProps) {
       const input = { name, amount: kopecks, items };
       if (budget) await updateBudget(budget.id, input);
       else await createBudget(input);
+      if (!budget) reachGoal('budget_created');
       toast.show({ message: budget ? 'Бюджет изменён' : 'Бюджет создан' });
       onClose();
     } catch (error) {

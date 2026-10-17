@@ -2,6 +2,7 @@ import { LogIn } from 'lucide-react';
 import { useState } from 'react';
 
 import { errorMessage } from '@/shared/api/errors';
+import { reachGoal } from '@/shared/lib/analytics';
 import { Button } from '@/shared/ui/Button';
 
 import { signInWithGoogle } from '../api/authApi';
@@ -26,6 +27,7 @@ export function GoogleSignIn({ next }: GoogleSignInProps) {
     setIsRedirecting(true);
     try {
       await signInWithGoogle(next);
+      reachGoal('login_google');
       // Успех — браузер уже уходит на страницу Google, кнопка остаётся в состоянии загрузки.
     } catch (e) {
       setError(errorMessage(e));

@@ -7,6 +7,7 @@ import { useAuth } from '@/features/auth/hooks/authContext';
 import { createHousehold, fetchSession } from '@/features/household/api/householdApi';
 import { ApiError, errorMessage } from '@/shared/api/errors';
 import { useQuery } from '@/shared/api/useQuery';
+import { reachGoal } from '@/shared/lib/analytics';
 import { Button } from '@/shared/ui/Button';
 import { Field } from '@/shared/ui/Field';
 import { Skeleton } from '@/shared/ui/Skeleton';
@@ -40,6 +41,7 @@ export default function OnboardingPage() {
     setError(null);
     try {
       await createHousehold(name.trim(), displayName.trim());
+      reachGoal('household_created');
       navigate('/', { replace: true });
     } catch (e) {
       setError(errorMessage(e));

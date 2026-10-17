@@ -13,6 +13,7 @@ import { Modal } from '@/shared/ui/Modal';
 import { SegmentedControl } from '@/shared/ui/SegmentedControl';
 import { useToast } from '@/shared/ui/toast/toastContext';
 import type { Transaction, TransactionType } from '@/shared/types/domain';
+import { reachGoal } from '@/shared/lib/analytics';
 
 import {
   createTransaction,
@@ -162,6 +163,7 @@ export function TransactionForm({ transaction, defaults, onClose }: TransactionF
     try {
       if (isEdit) await updateTransaction(id, expectedUpdatedAt, input);
       else await createTransaction(id, input);
+      reachGoal(isEdit ? 'transaction_updated' : 'transaction_created', { type: input.type });
       toast.show({ message: isEdit ? 'Операция изменена' : 'Операция добавлена' });
       onClose();
     } catch (error) {

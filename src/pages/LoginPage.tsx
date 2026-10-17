@@ -4,6 +4,7 @@ import { signIn } from '@/features/auth/api/authApi';
 import { AuthForm } from '@/features/auth/components/AuthForm';
 import { GoogleSignIn } from '@/features/auth/components/GoogleSignIn';
 import { safeRedirectPath } from '@/features/auth/model/safeRedirect';
+import { reachGoal } from '@/shared/lib/analytics';
 
 /** Вход по email и паролю; после входа — возврат на страницу, с которой отправили на вход (ERR-5). */
 export default function LoginPage() {
@@ -20,6 +21,7 @@ export default function LoginPage() {
       intro={<GoogleSignIn next={next} />}
       onSubmit={async ({ email, password }) => {
         await signIn(email, password);
+        reachGoal('login');
         navigate(target, { replace: true });
       }}
       footer={

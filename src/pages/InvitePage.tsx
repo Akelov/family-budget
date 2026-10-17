@@ -9,6 +9,7 @@ import { errorMessage } from '@/shared/api/errors';
 import { Button } from '@/shared/ui/Button';
 import { Field } from '@/shared/ui/Field';
 import { TextInput } from '@/shared/ui/TextInput';
+import { reachGoal } from '@/shared/lib/analytics';
 
 /** Принятие приглашения по ссылке /invite/:token (FR-1.5). */
 export default function InvitePage() {
@@ -33,6 +34,7 @@ export default function InvitePage() {
     setError(null);
     try {
       await acceptInvite(token, name.trim());
+      reachGoal('invite_accepted');
       clearPendingInvite();
       navigate('/', { replace: true });
     } catch (e) {

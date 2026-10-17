@@ -68,6 +68,8 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+      # Номер счётчика Яндекс.Метрики — только для production: превью не засоряют статистику.
+      VITE_YANDEX_METRIKA_ID: ${{ vars.VITE_YANDEX_METRIKA_ID }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

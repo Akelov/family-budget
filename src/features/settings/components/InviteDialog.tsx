@@ -8,6 +8,7 @@ import { Button } from '@/shared/ui/Button';
 import { Modal } from '@/shared/ui/Modal';
 import { SegmentedControl } from '@/shared/ui/SegmentedControl';
 import { TextInput } from '@/shared/ui/TextInput';
+import { reachGoal } from '@/shared/lib/analytics';
 
 export interface InviteDialogProps {
   onClose: () => void;
@@ -26,6 +27,7 @@ export function InviteDialog({ onClose }: InviteDialogProps) {
     setError(null);
     try {
       setLink(appUrl(`invite/${await createInvite(role)}`));
+      reachGoal('invite_created', { role });
     } catch (e) {
       setError(errorMessage(e));
     } finally {

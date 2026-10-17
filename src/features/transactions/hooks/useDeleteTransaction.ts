@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 
 import { errorMessage } from '@/shared/api/errors';
 import { useToast } from '@/shared/ui/toast/toastContext';
+import { reachGoal } from '@/shared/lib/analytics';
 
 import { deleteTransaction, restoreTransaction } from '../api/transactionsApi';
 
@@ -18,6 +19,7 @@ export function useDeleteTransaction() {
     async (id: string): Promise<boolean> => {
       try {
         await deleteTransaction(id);
+        reachGoal('transaction_deleted');
       } catch (error) {
         toast.show({ message: errorMessage(error), tone: 'error' });
         return false;

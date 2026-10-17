@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router';
 import { signUp } from '@/features/auth/api/authApi';
 import { AuthForm } from '@/features/auth/components/AuthForm';
 import { GoogleSignIn } from '@/features/auth/components/GoogleSignIn';
+import { reachGoal } from '@/shared/lib/analytics';
 
 /** Регистрация (FR-1.1): письмо со ссылкой подтверждения, после неё — экран «Создать семью». */
 export default function SignupPage() {
@@ -37,6 +38,7 @@ export default function SignupPage() {
       passwordAutocomplete="new-password"
       onSubmit={async ({ email, password }) => {
         const isSignedIn = await signUp(email, password);
+        reachGoal('sign_up');
         if (isSignedIn) navigate('/', { replace: true });
         else setSentTo(email.trim());
       }}
