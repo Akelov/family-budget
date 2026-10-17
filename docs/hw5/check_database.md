@@ -19,44 +19,58 @@
 
 ## Часть 3. Проверка от имени пользователя
 
-В **SQL Editor** над окном запроса (рядом с кнопкой Run) есть переключатель роли — по умолчанию
-`postgres` (администратор, видит всё). Выберите роль **authenticated** и пользователя
-**test1@example.com**. Теперь запросы выполняются так, как будто их отправил сайт от имени test1.
+Откройте новую вкладку запроса (**+** рядом с вкладками) — чтобы не смешивать с файлами миграций.
+Каждый блок ниже начинается с «представиться» нужным пользователем: `set_config` передаёт базе,
+кто вошёл (так же делает сайт через Supabase Auth), а `set local role authenticated` включает
+права обычного пользователя сайта вместо прав администратора. Действует только до конца блока.
 
-Вставьте и выполните (Run) по очереди:
+**Блок 1 — test1 создаёт семью и операцию** (вставить целиком → Run):
 
 ```sql
--- 1) создать семью: появится семья, вы — владелец, 15 категорий
+begin;
+select set_config('request.jwt.claims',
+  json_build_object('sub', (select id from auth.users where email = 'test1@example.com'), 'role', 'authenticated')::text, true);
+set local role authenticated;
+
 select * from create_household('Семья Тест');
-
--- 2) сколько категорий видит test1 (ожидаем 15)
-select count(*) from categories;
-
--- 3) добавить операцию: 1 500 ₽ на топливо, с тегом
 select create_transaction(gen_random_uuid(), 'expense', 150000,
   (select id from subcategories where name = 'Топливо'), current_date, 'Проверка', array['тест']);
+select (select count(*) from categories) as "категорий (15)",
+       (select count(*) from transactions) as "операций (1)";
+commit;
+```
 
--- 4) история и итоги (суммы в копейках: 150000 = 1 500 ₽)
-select * from list_transactions(current_date - 30, current_date);
+**Блок 2 — test1 смотрит историю и итоги** (суммы в копейках: 150000 = 1 500 ₽):
+
+```sql
+begin;
+select set_config('request.jwt.claims',
+  json_build_object('sub', (select id from auth.users where email = 'test1@example.com'), 'role', 'authenticated')::text, true);
+set local role authenticated;
 select * from period_summary(current_date - 30, current_date);
+commit;
 ```
 
-Теперь переключите пользователя на **test2@example.com** и выполните:
+**Блок 3 — test2 не видит чужие данные:**
 
 ```sql
--- 5) чужие данные: ожидаем 0 — test2 не видит операцию test1
-select count(*) from transactions;
-
--- 6) у test2 своя семья и свои 15 категорий
-select * from create_household('Семья Другая');
-select count(*) from categories;
+begin;
+select set_config('request.jwt.claims',
+  json_build_object('sub', (select id from auth.users where email = 'test2@example.com'), 'role', 'authenticated')::text, true);
+set local role authenticated;
+select (select count(*) from transactions) as "операций видно (0)",
+       (select count(*) from categories) as "категорий видно (0)",
+       (select count(*) from households) as "семей видно (0)";
+commit;
 ```
 
-Переключите роль на **anon** (посетитель без входа):
+**Блок 4 — посетитель без входа** (ожидаем ошибку `permission denied for table transactions`):
 
 ```sql
--- 7) ожидаем ошибку permission denied — без входа доступа нет
+begin;
+set local role anon;
 select * from transactions;
+commit;
 ```
 
 ## Часть 4. Взгляд администратора
