@@ -1,4 +1,9 @@
-name: CI и деплой
+name: CI/CD
+
+# Пайплайн ДЗ6: проверки качества → тесты → аудит зависимостей → сборка → деплой на Vercel.
+# Деплой выполняется ТОЛЬКО если все проверки прошли: сломанная версия не попадёт на сайт.
+#   push в main      → production (основной адрес сайта)
+#   pull request     → preview (отдельная временная ссылка, комментарий в PR)
 
 on:
   push:
@@ -9,9 +14,18 @@ on:
 permissions:
   contents: read
 
+# Новый запуск для той же ветки отменяет предыдущий: на сайт уходит последняя версия.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Версия Vercel CLI зафиксирована, чтобы сборка не менялась сама по себе.
+  VERCEL_CLI: vercel@61.1.0
+
 jobs:
-  check:
-    name: Линтер, типы, тесты, сборка
+  quality:
+    name: Проверки, тесты, сборка
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -19,38 +33,102 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm test
-      - name: Сборка для GitHub Pages
+      - name: Установка зависимостей
+        run: npm ci
+      - name: Форматирование (Prettier)
+        run: npm run format:check
+      - name: Линтер (ESLint)
+        run: npm run lint
+      - name: Типы (TypeScript)
+        run: npm run typecheck
+      - name: Тесты (Vitest)
+        run: npm test
+      - name: Аудит зависимостей сайта (npm audit)
+        # Только зависимости, которые попадают в браузер; high и critical останавливают пайплайн.
+        run: npm audit --omit=dev --audit-level=high
+      - name: Сборка
         run: npm run build
         env:
-          VITE_BASE: /${{ github.event.repository.name }}/
-          # Адрес Supabase и публичный ключ anon (правило 17: не секреты, но и не в коде).
-          # Задаются в Settings → Secrets and variables → Actions → Variables. Если их нет,
-          # сайт собирается в демо-режиме на мок-данных.
+          # Адрес Supabase и публичный ключ anon (не секреты, но и не в коде — правило 17).
+          # Settings → Secrets and variables → Actions → Variables.
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
-      # GitHub Pages не знает маршрутов SPA: 404.html с тем же кодом открывает приложение
-      # по прямой ссылке вроде /family-budget/reports.
-      - run: cp dist/index.html dist/404.html
-      - uses: actions/upload-pages-artifact@v4
-        if: github.ref == 'refs/heads/main'
-        with:
-          path: dist
 
-  deploy:
-    name: Деплой на GitHub Pages
-    if: github.ref == 'refs/heads/main'
-    needs: check
+  deploy-production:
+    name: Деплой на Vercel (production)
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: quality
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      # Секреты GitHub: Settings → Secrets and variables → Actions → Secrets.
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Проверка секретов Vercel
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error::Не заданы секреты VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID"
+            exit 1
+          fi
+      - name: Настройки проекта Vercel (переменные окружения production)
+        run: npx --yes "$VERCEL_CLI" pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - name: Сборка для Vercel
+        run: npx --yes "$VERCEL_CLI" build --prod --token="$VERCEL_TOKEN"
+      - name: Публикация
+        id: deploy
+        run: |
+          url=$(npx --yes "$VERCEL_CLI" deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Опубликовано: $url" >> "$GITHUB_STEP_SUMMARY"
+      - name: Проверка здоровья после деплоя (smoke test)
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' "${{ steps.deploy.outputs.url }}")
+          echo "Главная страница: HTTP $code"
+          [ "$code" = "200" ]
+
+  deploy-preview:
+    name: Деплой на Vercel (preview)
+    # PR из форков не получает секреты — превью только для веток этого репозитория.
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: quality
     runs-on: ubuntu-latest
     permissions:
-      pages: write
-      id-token: write
+      contents: read
+      pull-requests: write
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: preview
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Настройки проекта Vercel (переменные окружения preview)
+        run: npx --yes "$VERCEL_CLI" pull --yes --environment=preview --token="$VERCEL_TOKEN"
+      - name: Сборка для Vercel
+        run: npx --yes "$VERCEL_CLI" build --token="$VERCEL_TOKEN"
+      - name: Публикация превью
+        id: deploy
+        run: |
+          url=$(npx --yes "$VERCEL_CLI" deploy --prebuilt --token="$VERCEL_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Превью: $url" >> "$GITHUB_STEP_SUMMARY"
+      - name: Ссылка на превью в Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          URL: ${{ steps.deploy.outputs.url }}
+        run: gh pr comment ${{ github.event.pull_request.number }} --body "Превью этой версии сайта: $URL"
