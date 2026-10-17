@@ -22,6 +22,7 @@ concurrency:
 env:
   # Версия Vercel CLI зафиксирована, чтобы сборка не менялась сама по себе.
   VERCEL_CLI: vercel@61.1.0
+  VERCEL_PROJECT: family-budget
 
 jobs:
   quality:
@@ -61,39 +62,49 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: ${{ steps.deploy.outputs.url }}
+      url: ${{ steps.deploy.outputs.site }}
     env:
-      # Секреты GitHub: Settings → Secrets and variables → Actions → Secrets.
+      # Токен Vercel — секрет GitHub: Settings → Secrets and variables → Actions → Secrets.
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: npm
-      - name: Проверка секретов Vercel
+      - name: Проверка токена Vercel
         run: |
-          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
-            echo "::error::Не заданы секреты VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID"
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::Не задан секрет VERCEL_TOKEN (Settings → Secrets and variables → Actions)"
             exit 1
           fi
-      - name: Настройки проекта Vercel (переменные окружения production)
-        run: npx --yes "$VERCEL_CLI" pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - name: Проект на Vercel (создаётся при первом запуске)
+        run: |
+          npx --yes "$VERCEL_CLI" project add "$VERCEL_PROJECT" --token="$VERCEL_TOKEN" || true
+          npx --yes "$VERCEL_CLI" link --yes --project "$VERCEL_PROJECT" --token="$VERCEL_TOKEN"
+          npx --yes "$VERCEL_CLI" pull --yes --environment=production --token="$VERCEL_TOKEN"
       - name: Сборка для Vercel
         run: npx --yes "$VERCEL_CLI" build --prod --token="$VERCEL_TOKEN"
       - name: Публикация
         id: deploy
         run: |
           url=$(npx --yes "$VERCEL_CLI" deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          # Постоянный адрес сайта (alias) — самый короткий из адресов *.vercel.app этой публикации.
+          site=$(npx --yes "$VERCEL_CLI" inspect "$url" --token="$VERCEL_TOKEN" 2>&1 \
+            | grep -oE 'https://[a-z0-9.-]+\.vercel\.app' | awk '{ print length, $0 }' | sort -n | head -1 | cut -d' ' -f2)
           echo "url=$url" >> "$GITHUB_OUTPUT"
-          echo "Опубликовано: $url" >> "$GITHUB_STEP_SUMMARY"
-      - name: Проверка здоровья после деплоя (smoke test)
+          echo "site=${site:-$url}" >> "$GITHUB_OUTPUT"
+          echo "Сайт: ${site:-$url}  (публикация: $url)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Проверка после деплоя (smoke test)
         run: |
-          code=$(curl -s -o /dev/null -w '%{http_code}' "${{ steps.deploy.outputs.url }}")
-          echo "Главная страница: HTTP $code"
-          [ "$code" = "200" ]
+          site="${{ steps.deploy.outputs.site }}"
+          for path in / /reports /login; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$site$path")
+            echo "$site$path → HTTP $code"
+            [ "$code" = "200" ] || exit 1
+          done
 
   deploy-preview:
     name: Деплой на Vercel (preview)
@@ -109,16 +120,18 @@ jobs:
       url: ${{ steps.deploy.outputs.url }}
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: npm
-      - name: Настройки проекта Vercel (переменные окружения preview)
-        run: npx --yes "$VERCEL_CLI" pull --yes --environment=preview --token="$VERCEL_TOKEN"
+      - name: Проект на Vercel
+        run: |
+          npx --yes "$VERCEL_CLI" link --yes --project "$VERCEL_PROJECT" --token="$VERCEL_TOKEN"
+          npx --yes "$VERCEL_CLI" pull --yes --environment=preview --token="$VERCEL_TOKEN"
       - name: Сборка для Vercel
         run: npx --yes "$VERCEL_CLI" build --token="$VERCEL_TOKEN"
       - name: Публикация превью
@@ -131,4 +144,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           URL: ${{ steps.deploy.outputs.url }}
-        run: gh pr comment ${{ github.event.pull_request.number }} --body "Превью этой версии сайта: $URL"
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "Превью этой версии сайта: $URL"
