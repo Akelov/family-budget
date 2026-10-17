@@ -44,9 +44,9 @@ jobs:
         run: npm run typecheck
       - name: Тесты (Vitest)
         run: npm test
-      - name: Аудит зависимостей сайта (npm audit)
-        # Только зависимости, которые попадают в браузер; high и critical останавливают пайплайн.
-        run: npm audit --omit=dev --audit-level=high
+      - name: Аудит зависимостей (npm audit)
+        # Уязвимости уровня high и critical в любых зависимостях останавливают пайплайн.
+        run: npm audit --audit-level=high
       - name: Сборка
         run: npm run build
         env:
@@ -108,8 +108,11 @@ jobs:
 
   deploy-preview:
     name: Деплой на Vercel (preview)
-    # PR из форков не получает секреты — превью только для веток этого репозитория.
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    # PR из форков и от Dependabot не получают секреты — превью только для веток этого репозитория.
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
     needs: quality
     runs-on: ubuntu-latest
     permissions:

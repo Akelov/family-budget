@@ -2,14 +2,15 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 
 import { signIn } from '@/features/auth/api/authApi';
 import { AuthForm } from '@/features/auth/components/AuthForm';
+import { safeRedirectPath } from '@/features/auth/model/safeRedirect';
 
 /** Вход по email и паролю; после входа — возврат на страницу, с которой отправили на вход (ERR-5). */
 export default function LoginPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const next = params.get('next');
-  // Возвращаем только на свои страницы, а не на внешний адрес из параметра.
-  const target = next && next.startsWith('/') && !next.startsWith('//') ? next : '/';
+  // Возвращаем только на свои страницы, а не на внешний адрес из параметра (OWASP A01).
+  const target = safeRedirectPath(next);
 
   return (
     <AuthForm

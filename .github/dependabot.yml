@@ -1,0 +1,21 @@
+# Dependabot раз в неделю проверяет библиотеки и GitHub Actions на новые версии и уязвимости
+# и открывает Pull Request с обновлением. Пайплайн CI проверяет каждое такое обновление.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Moscow
+    open-pull-requests-limit: 5
+    groups:
+      # Мелкие обновления одной пачкой, чтобы не было десятка PR.
+      minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Moscow

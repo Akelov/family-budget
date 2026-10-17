@@ -1,10 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest';
 
 import { installGlobalErrorLogging } from './globalErrors';
 import { resetLogLimit } from './logger';
 
-function loggedCodes(spy: ReturnType<typeof vi.spyOn>): unknown[] {
-  return spy.mock.calls.map((call) => (JSON.parse(String(call[0])) as { code: unknown }).code);
+function loggedCodes(spy: MockInstance<typeof console.error>): unknown[] {
+  return spy.mock.calls.map(
+    (call: unknown[]) => (JSON.parse(String(call[0])) as { code: unknown }).code,
+  );
 }
 
 describe('installGlobalErrorLogging', () => {
