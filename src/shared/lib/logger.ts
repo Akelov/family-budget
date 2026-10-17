@@ -37,6 +37,10 @@ export async function logClientError(entry: ClientErrorEntry): Promise<boolean> 
   console.error(JSON.stringify({ level: 'error', time: new Date().toISOString(), ...entry }));
   if (!isSupabaseEnabled) return false;
   try {
+    // Гость (страницы входа и регистрации) писать в журнал не может — это запрещено правами
+    // базы. Без этой проверки отказ сам попадал в логи Postgres как «permission denied».
+    const { data } = await supabase().auth.getSession();
+    if (!data.session) return false;
     const { error } = await supabase()
       .from('client_errors')
       .insert({
