@@ -22,6 +22,17 @@ describe('installGlobalErrorLogging', () => {
     vi.restoreAllMocks();
   });
 
+  it('«Script error.» из чужого скрипта — warning, а не error', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    target.dispatchEvent(new ErrorEvent('error', { message: 'Script error.' }));
+    expect(error).not.toHaveBeenCalled();
+    expect(JSON.parse(String(warn.mock.calls[0]?.[0]))).toMatchObject({
+      level: 'warning',
+      code: 'third_party_script',
+    });
+  });
+
   it('логирует непойманное исключение', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     target.dispatchEvent(new ErrorEvent('error', { message: 'Boom' }));
