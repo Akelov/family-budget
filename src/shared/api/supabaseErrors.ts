@@ -1,3 +1,6 @@
+import { currentScreen } from '@/shared/lib/currentScreen';
+import { logClientError } from '@/shared/lib/logger';
+
 import { ApiError, type ApiErrorCode } from './errors';
 
 /** Ошибка, которую возвращают supabase-js и PostgREST. */
@@ -22,7 +25,11 @@ const CODE_MAP: Record<string, ApiErrorCode> = {
 };
 
 /** Сообщения базы, которые можно показать пользователю как есть (они на русском и без деталей). */
-const SHOW_SERVER_MESSAGE: ReadonlySet<ApiErrorCode> = new Set(['validation', 'forbidden', 'not_found']);
+const SHOW_SERVER_MESSAGE: ReadonlySet<ApiErrorCode> = new Set([
+  'validation',
+  'forbidden',
+  'not_found',
+]);
 
 const DUPLICATE_MESSAGES: Record<string, string> = {
   categories_unique_name: 'Такая категория уже есть',
@@ -48,8 +55,16 @@ export function toApiError(error: SupabaseLikeError | null | undefined): ApiErro
     return new ApiError('network');
   }
   const code = error.code ? CODE_MAP[error.code] : undefined;
-  // Неизвестный код (в том числе HTTP 5xx) — «Не удалось загрузить данные» без технических подробностей.
-  if (!code) return new ApiError('server');
+  // Неизвестный код (в том числе HTTP 5xx) — «Не удалось загрузить данные» без технических
+  // подробностей. Исходный текст базы нужен разработчику, поэтому он уходит в журнал (ТЗ §6.4).
+  if (!code) {
+    void logClientError({
+      screen: currentScreen(),
+      code: `db_${error.code ?? error.status ?? 'unknown'}`,
+      message: message || 'Пустой ответ сервера',
+    });
+    return new ApiError('server');
+  }
   if (code === 'duplicate') {
     const constraint = Object.keys(DUPLICATE_MESSAGES).find((name) => message.includes(name));
     return new ApiError('duplicate', constraint ? DUPLICATE_MESSAGES[constraint] : undefined);

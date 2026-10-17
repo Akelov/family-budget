@@ -25,7 +25,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   override componentDidCatch(error: Error, info: ErrorInfo): void {
-    logClientError({
+    void logClientError({
       screen: this.props.screen,
       code: 'ui_crash',
       message: error.message,

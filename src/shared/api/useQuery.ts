@@ -71,12 +71,13 @@ export function useQuery<T>(
         })
         .catch((error: unknown) => {
           if (id !== requestId.current) return;
-          // ERR-4 (сбой сервера) и непредвиденные ошибки пишутся в журнал (ТЗ §6.4); сеть, права
+          // Непредвиденные исключения (ошибка в коде разбора ответа) пишутся в журнал (ТЗ §6.4).
+          // Ошибки сервера уже записаны в toApiError — там есть исходный текст базы; сеть, права
           // и «нет семьи» — ожидаемые ситуации, их не логируем.
-          if (!(error instanceof ApiError) || error.code === 'server') {
-            logClientError({
+          if (!(error instanceof ApiError)) {
+            void logClientError({
               screen: key.split(':')[0] ?? 'unknown',
-              code: error instanceof ApiError ? `load_${error.code}` : 'load_failed',
+              code: 'load_failed',
               message: error instanceof Error ? error.message : String(error),
             });
           }

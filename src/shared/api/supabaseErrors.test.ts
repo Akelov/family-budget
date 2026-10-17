@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+import { resetLogLimit } from '@/shared/lib/logger';
 
 import { ApiError } from './errors';
 import { stringField, toApiError, unwrap } from './supabaseErrors';
@@ -17,14 +19,19 @@ describe('toApiError — коды Supabase → поведение интерфе
   });
 
   it('показывает русские сообщения базы, а английские технические — нет', () => {
-    expect(toApiError({ code: '23514', message: 'Дата не может быть в будущем' }).message).toBe('Дата не может быть в будущем');
-    expect(toApiError({ code: '42501', message: 'permission denied for table transactions' }).message).toBe(
-      'Недостаточно прав для этого действия',
+    expect(toApiError({ code: '23514', message: 'Дата не может быть в будущем' }).message).toBe(
+      'Дата не может быть в будущем',
     );
+    expect(
+      toApiError({ code: '42501', message: 'permission denied for table transactions' }).message,
+    ).toBe('Недостаточно прав для этого действия');
   });
 
   it('уникальность → понятный текст по имени ограничения', () => {
-    const error = toApiError({ code: '23505', message: 'duplicate key value violates unique constraint "tags_unique_name"' });
+    const error = toApiError({
+      code: '23505',
+      message: 'duplicate key value violates unique constraint "tags_unique_name"',
+    });
     expect(error).toMatchObject({ code: 'duplicate', message: 'Такой тег уже есть' });
   });
 
@@ -32,6 +39,25 @@ describe('toApiError — коды Supabase → поведение интерфе
     expect(toApiError({ message: 'TypeError: Failed to fetch' }).code).toBe('network');
     expect(toApiError({ code: 'XX000', message: 'internal' }).code).toBe('server');
     expect(toApiError(null).code).toBe('server');
+  });
+
+  it('неизвестная ошибка базы пишется в журнал с исходным текстом, пользователю — без деталей', () => {
+    resetLogLimit();
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const error = toApiError({ code: 'XX000', message: 'could not serialize access' });
+    expect(error.message).toBe('Не удалось загрузить данные');
+    expect(String(spy.mock.calls[0]?.[0])).toContain('db_XX000');
+    expect(String(spy.mock.calls[0]?.[0])).toContain('could not serialize access');
+    spy.mockRestore();
+  });
+
+  it('ожидаемые ошибки (права, дубликат) в журнал не пишутся', () => {
+    resetLogLimit();
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    toApiError({ code: '42501', message: 'permission denied' });
+    toApiError({ code: '23505', message: 'duplicate key' });
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
   });
 });
 
