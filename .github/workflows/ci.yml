@@ -27,6 +27,11 @@ jobs:
         run: npm run build
         env:
           VITE_BASE: /${{ github.event.repository.name }}/
+          # Адрес Supabase и публичный ключ anon (правило 17: не секреты, но и не в коде).
+          # Задаются в Settings → Secrets and variables → Actions → Variables. Если их нет,
+          # сайт собирается в демо-режиме на мок-данных.
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
       # GitHub Pages не знает маршрутов SPA: 404.html с тем же кодом открывает приложение
       # по прямой ссылке вроде /family-budget/reports.
       - run: cp dist/index.html dist/404.html

@@ -1,5 +1,7 @@
 /** Коды ошибок API — соответствуют ситуациям ERR-1 … ERR-10 из ТЗ §6.1. */
 export type ApiErrorCode =
+  | 'unauthorized'
+  | 'no_household'
   | 'network'
   | 'server'
   | 'forbidden'
@@ -11,6 +13,8 @@ export type ApiErrorCode =
 
 /** Тексты по умолчанию (приложение B ТЗ). */
 export const API_ERROR_MESSAGES: Record<ApiErrorCode, string> = {
+  unauthorized: 'Сессия истекла, войдите снова',
+  no_household: 'Вы пока не состоите в семье',
   network: 'Нет соединения',
   server: 'Не удалось загрузить данные',
   forbidden: 'Недостаточно прав для этого действия',

@@ -77,6 +77,19 @@ export function computeBudget(
         isInPeriod(tx.date, period),
     )
     .reduce((sum, tx) => sum + tx.amount, 0);
+  return budgetViewFromSpent(budget, spent, lookups);
+}
+
+/**
+ * Собирает карточку бюджета из уже посчитанной суммы трат (её считает сервер, `budget_status`):
+ * остаток, процент ⌊потрачено × 100 / лимит⌋ и статус по копейкам.
+ *
+ * @param budget - бюджет
+ * @param spent - потрачено за период, копейки
+ * @param lookups - справочники (для пометки «Нет активных подкатегорий»)
+ */
+export function budgetViewFromSpent(budget: Budget, spent: number, lookups: Lookups): BudgetView {
+  const subIds = budgetSubcategoryIds(budget, lookups);
   const hasActiveSubcategories = [...subIds].some((id) => {
     const sub = lookups.subcategoryById.get(id);
     const category = sub ? lookups.categoryById.get(sub.categoryId) : undefined;

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatMoney, kopecksToInput, parseAmount } from './money';
+import {
+  formatMoney,
+  kopecksToInput,
+  kopecksToRublesString,
+  parseAmount,
+  rublesStringToKopecks,
+} from './money';
 
 const NBSP = ' ';
 
@@ -42,5 +48,24 @@ describe('kopecksToInput', () => {
 
   it('выбрасывает RangeError для отрицательных', () => {
     expect(() => kopecksToInput(-1)).toThrow(RangeError);
+  });
+});
+
+describe('обмен суммами с базой (numeric(12,2) ↔ копейки)', () => {
+  it('строка из базы → копейки без float', () => {
+    expect(rublesStringToKopecks('2500.50')).toBe(250_050);
+    expect(rublesStringToKopecks('80000')).toBe(8_000_000);
+    expect(rublesStringToKopecks('0.1')).toBe(10);
+    expect(rublesStringToKopecks('9999999999.99')).toBe(999_999_999_999);
+  });
+
+  it('копейки → строка для записи', () => {
+    expect(kopecksToRublesString(250_050)).toBe('2500.50');
+    expect(kopecksToRublesString(5)).toBe('0.05');
+  });
+
+  it('выбрасывает RangeError на мусоре', () => {
+    expect(() => rublesStringToKopecks('12,5')).toThrow(RangeError);
+    expect(() => kopecksToRublesString(-1)).toThrow(RangeError);
   });
 });

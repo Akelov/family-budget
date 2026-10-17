@@ -1,8 +1,10 @@
-import { type ReactNode, useMemo } from 'react';
+import { type ReactNode, useEffect, useMemo } from 'react';
+import { Navigate } from 'react-router';
 
 import { fetchCategories } from '@/features/categories/api/categoriesApi';
 import { fetchTags } from '@/features/tags/api/tagsApi';
-import { errorMessage } from '@/shared/api/errors';
+import { useAuth } from '@/features/auth/hooks/authContext';
+import { ApiError, errorMessage } from '@/shared/api/errors';
 import { getFailMode, setFailMode } from '@/shared/api/mockDb';
 import { useQuery } from '@/shared/api/useQuery';
 import { buildLookups } from '@/shared/lib/lookups';
@@ -12,6 +14,7 @@ import { Skeleton } from '@/shared/ui/Skeleton';
 
 import { fetchSession } from '../api/householdApi';
 import { ReferenceContext, type ReferenceValue } from '../hooks/referenceContext';
+import { useRealtime } from '../hooks/useRealtime';
 import { can } from '../model/permissions';
 
 export interface ReferenceDataProviderProps {
@@ -30,6 +33,14 @@ async function fetchReference() {
 /** Загружает семью и справочники до показа экранов; при ошибке — экран с «Повторить». */
 export function ReferenceDataProvider({ children }: ReferenceDataProviderProps) {
   const query = useQuery('reference', fetchReference, ['session', 'categories', 'tags']);
+  const { signOut } = useAuth();
+  const errorCode = query.error instanceof ApiError ? query.error.code : null;
+  useRealtime(query.data?.session.household.id ?? null);
+
+  // Сессия истекла и не обновилась (ERR-5): выходим, RequireAuth отправит на вход.
+  useEffect(() => {
+    if (errorCode === 'unauthorized') void signOut();
+  }, [errorCode, signOut]);
 
   const value = useMemo<ReferenceValue | null>(() => {
     if (!query.data) return null;
@@ -49,6 +60,9 @@ export function ReferenceDataProvider({ children }: ReferenceDataProviderProps) 
       isRefreshing: query.isRefreshing,
     };
   }, [query.data, query.isRefreshing]);
+
+  // Вошёл, но не в семье (новый аккаунт, исключили, семью удалили) — экран «Создать семью» (FR-1.2).
+  if (errorCode === 'no_household') return <Navigate to="/onboarding" replace />;
 
   if (query.status === 'loading') {
     return (

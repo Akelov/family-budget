@@ -9,6 +9,7 @@ import type {
 } from '@/shared/types/domain';
 
 import { ApiError } from './errors';
+import { ALL_TOPICS, type DataTopic, emitChange } from './events';
 import { createSeed } from './seed';
 
 /**
@@ -33,12 +34,7 @@ export const DB_VERSION = 1;
 const STORAGE_KEY = 'family-budget:mock-db';
 const FAIL_KEY = 'family-budget:fail';
 
-/** Темы изменений — аналог каналов Supabase Realtime (FR-3.13). */
-export type DbTopic = 'session' | 'categories' | 'tags' | 'transactions' | 'budgets';
-type Listener = (topics: readonly DbTopic[]) => void;
-
 let state: DbState | null = null;
-const listeners = new Set<Listener>();
 
 function isDbState(value: unknown): value is DbState {
   if (typeof value !== 'object' || value === null) return false;
@@ -85,21 +81,15 @@ export function readDb(): DbState {
  * @param topics - какие данные изменились (для перезапроса на экранах)
  * @param update - чистая функция «старое состояние → новое»
  */
-export function writeDb(topics: readonly DbTopic[], update: (db: DbState) => DbState): void {
+export function writeDb(topics: readonly DataTopic[], update: (db: DbState) => DbState): void {
   state = update(readDb());
   persist(state);
-  listeners.forEach((listener) => listener(topics));
-}
-
-/** Подписка на изменения базы. Возвращает функцию отписки. */
-export function subscribeDb(listener: Listener): () => void {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
+  emitChange(topics);
 }
 
 /** Сбрасывает базу к демо-данным (кнопка в настройках и тесты). */
 export function resetDb(seed: DbState = createSeed()): void {
-  writeDb(['session', 'categories', 'tags', 'transactions', 'budgets'], () => seed);
+  writeDb(ALL_TOPICS, () => seed);
 }
 
 // Другая вкладка браузера изменила данные — как будто пришло событие Realtime от другого участника.
@@ -107,9 +97,7 @@ if (typeof window !== 'undefined') {
   window.addEventListener('storage', (event) => {
     if (event.key !== STORAGE_KEY) return;
     state = null;
-    listeners.forEach((listener) =>
-      listener(['session', 'categories', 'tags', 'transactions', 'budgets']),
-    );
+    emitChange(ALL_TOPICS);
   });
 }
 

@@ -4,8 +4,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { vi } from 'vitest';
 
 import { routes } from '@/app/router';
-import { ReferenceDataProvider } from '@/features/household/components/ReferenceDataProvider';
-import { TransactionFormProvider } from '@/features/transactions/components/TransactionFormProvider';
+import { AuthProvider } from '@/features/auth/components/AuthProvider';
 import { resetDb } from '@/shared/api/mockDb';
 import { createSeed } from '@/shared/api/seed';
 import { ToastProvider } from '@/shared/ui/toast/ToastProvider';
@@ -25,11 +24,9 @@ export function renderApp(path = '/') {
   const user = userEvent.setup();
   const view = render(
     <ToastProvider>
-      <ReferenceDataProvider>
-        <TransactionFormProvider>
-          <RouterProvider router={router} />
-        </TransactionFormProvider>
-      </ReferenceDataProvider>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
     </ToastProvider>,
   );
   return { ...view, user, router };

@@ -1,11 +1,12 @@
 import { Bug } from 'lucide-react';
 import { Link } from 'react-router';
 
+import { isSupabaseEnabled } from '@/shared/api/config';
 import { getFailMode } from '@/shared/api/mockDb';
 
 /** Предупреждение, что включена имитация ошибок (Настройки › Для разработчика). */
 export function DemoBanner() {
-  const mode = getFailMode();
+  const mode = isSupabaseEnabled ? null : getFailMode();
   if (!mode) return null;
   return (
     <div

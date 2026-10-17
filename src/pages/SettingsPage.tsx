@@ -12,6 +12,7 @@ import {
 import type { ReactNode } from 'react';
 import { Link, NavLink, useParams } from 'react-router';
 
+import { useAuth } from '@/features/auth/hooks/authContext';
 import { CategoriesSection } from '@/features/settings/components/CategoriesSection';
 import { DeveloperSection } from '@/features/settings/components/DeveloperSection';
 import { FamilySection } from '@/features/settings/components/FamilySection';
@@ -77,8 +78,11 @@ const SECTIONS: readonly Section[] = [
 /** Экран «Настройки»: на телефоне — список разделов и раздел отдельно, на десктопе — две колонки. */
 export default function SettingsPage() {
   const { section: slug } = useParams();
-  const active = SECTIONS.find((s) => s.slug === slug);
-  const desktopActive = active ?? SECTIONS[0];
+  const { isDemo } = useAuth();
+  // «Для разработчика» (вход как, имитация ошибок) нужен только на мок-данных.
+  const sections = SECTIONS.filter((s) => isDemo || s.slug !== 'developer');
+  const active = sections.find((s) => s.slug === slug);
+  const desktopActive = active ?? sections[0];
 
   return (
     <>
@@ -92,7 +96,7 @@ export default function SettingsPage() {
           )}
         >
           <ul>
-            {SECTIONS.map((s) => (
+            {sections.map((s) => (
               <li key={s.slug} className="border-t border-border first:border-t-0">
                 <NavLink
                   to={`/settings/${s.slug}`}

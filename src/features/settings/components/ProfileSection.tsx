@@ -12,6 +12,7 @@ import { TextInput } from '@/shared/ui/TextInput';
 import { useToast } from '@/shared/ui/toast/toastContext';
 import type { FamilyPeriodMode } from '@/shared/types/domain';
 
+import { AccountCard } from './AccountCard';
 import { PeriodModeFields } from './PeriodModeFields';
 import { SettingsCard } from './SettingsCard';
 
@@ -110,6 +111,7 @@ export function ProfileSection() {
           )}
         </div>
       </SettingsCard>
+      <AccountCard />
     </div>
   );
 }

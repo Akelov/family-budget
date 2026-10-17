@@ -102,3 +102,24 @@ export function formatMoney(kopecks: number, options: FormatMoneyOptions = {}): 
   if (kopecks > 0 && sign === 'always') return `+${body}`;
   return body;
 }
+
+/**
+ * Переводит сумму из базы (`numeric(12,2)`, приходит строкой: «2500.50», «80000», «0.1»)
+ * в копейки без float-арифметики.
+ *
+ * @param value - строка с рублями, разделитель — точка
+ * @throws {RangeError} если строка не похожа на сумму
+ */
+export function rublesStringToKopecks(value: string | number): number {
+  const text = String(value).trim();
+  const match = /^(-?)(\d+)(?:\.(\d{1,2})\d*)?$/.exec(text);
+  if (!match) throw new RangeError(`Некорректная сумма из базы: ${text}`);
+  const kopecks = Number(match[2]) * KOPECKS_PER_RUBLE + Number((match[3] ?? '').padEnd(2, '0'));
+  return match[1] === '-' ? -kopecks : kopecks;
+}
+
+/** Копейки → строка рублей для записи в `numeric(12,2)`: `250050` → `"2500.50"`. */
+export function kopecksToRublesString(kopecks: number): string {
+  assertValidKopecks(kopecks);
+  return `${Math.trunc(kopecks / KOPECKS_PER_RUBLE)}.${String(kopecks % KOPECKS_PER_RUBLE).padStart(2, '0')}`;
+}

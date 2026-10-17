@@ -8,6 +8,7 @@ import { Field } from '@/shared/ui/Field';
 import { TextInput } from '@/shared/ui/TextInput';
 import { useToast } from '@/shared/ui/toast/toastContext';
 
+import { DeleteHouseholdCard } from './DeleteHouseholdCard';
 import { PeriodModeFields } from './PeriodModeFields';
 import { SettingsCard } from './SettingsCard';
 
@@ -68,6 +69,7 @@ export function FamilySection() {
           }
         />
       </SettingsCard>
+      <DeleteHouseholdCard />
     </div>
   );
 }

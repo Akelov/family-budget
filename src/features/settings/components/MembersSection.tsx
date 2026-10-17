@@ -1,5 +1,8 @@
 import { Crown, UserPlus, UserX } from 'lucide-react';
 
+import { useState } from 'react';
+
+import { useAuth } from '@/features/auth/hooks/authContext';
 import { changeRole, removeMember } from '@/features/household/api/householdApi';
 import { useReference } from '@/features/household/hooks/referenceContext';
 import { ROLE_LABELS } from '@/features/household/model/permissions';
@@ -10,6 +13,7 @@ import { IconButton } from '@/shared/ui/IconButton';
 import { useToast } from '@/shared/ui/toast/toastContext';
 import type { Member } from '@/shared/types/domain';
 
+import { InviteDialog } from './InviteDialog';
 import { SettingsCard } from './SettingsCard';
 
 /** Участники и роли (FR-1.6): владелец меняет роли admin ↔ member и исключает участников. */
@@ -17,6 +21,8 @@ export function MembersSection() {
   const { members, member: me, can } = useReference();
   const toast = useToast();
   const canManage = can('members.manage');
+  const { isDemo } = useAuth();
+  const [isInviting, setIsInviting] = useState(false);
   const active = members.filter((m) => m.removedAt === null);
   const former = members.filter((m) => m.removedAt !== null);
 
@@ -65,8 +71,9 @@ export function MembersSection() {
             size="sm"
             variant="secondary"
             icon={<UserPlus />}
-            disabled
-            title="Приглашения по ссылке появятся с подключением сервера (ДЗ5)"
+            disabled={isDemo}
+            title={isDemo ? 'Приглашения работают только с сервером' : undefined}
+            onClick={() => setIsInviting(true)}
           >
             Пригласить
           </Button>
@@ -100,6 +107,7 @@ export function MembersSection() {
           Бывшие участники: {former.map((m) => m.displayName).join(', ')} — их операции сохранены.
         </p>
       )}
+      {isInviting && <InviteDialog onClose={() => setIsInviting(false)} />}
     </SettingsCard>
   );
 }

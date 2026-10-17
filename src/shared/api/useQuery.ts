@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { logClientError } from '@/shared/lib/logger';
 
 import { ApiError, isRetryable } from './errors';
-import { type DbTopic, subscribeDb } from './mockDb';
+import { type DataTopic, subscribeChanges } from './events';
 
 export type QueryState<T> =
   | { status: 'loading'; data: undefined; error: undefined }
@@ -47,7 +47,7 @@ async function withRetries<T>(fetcher: () => Promise<T>): Promise<T> {
 export function useQuery<T>(
   key: string,
   fetcher: () => Promise<T>,
-  topics: readonly DbTopic[],
+  topics: readonly DataTopic[],
 ): QueryResult<T> {
   const [state, setState] = useState<QueryState<T>>({
     status: 'loading',
@@ -71,11 +71,13 @@ export function useQuery<T>(
         })
         .catch((error: unknown) => {
           if (id !== requestId.current) return;
-          if (!(error instanceof ApiError)) {
+          // ERR-4 (сбой сервера) и непредвиденные ошибки пишутся в журнал (ТЗ §6.4); сеть, права
+          // и «нет семьи» — ожидаемые ситуации, их не логируем.
+          if (!(error instanceof ApiError) || error.code === 'server') {
             logClientError({
               screen: key.split(':')[0] ?? 'unknown',
-              code: 'load_failed',
-              message: String(error),
+              code: error instanceof ApiError ? `load_${error.code}` : 'load_failed',
+              message: error instanceof Error ? error.message : String(error),
             });
           }
           // При фоновом обновлении старые данные остаются на экране (ERR-3).
@@ -94,7 +96,7 @@ export function useQuery<T>(
 
   useEffect(() => {
     const watched = new Set(topicsKey.split(','));
-    return subscribeDb((changed) => {
+    return subscribeChanges((changed) => {
       if (changed.some((topic) => watched.has(topic))) run(true);
     });
   }, [run, topicsKey]);
