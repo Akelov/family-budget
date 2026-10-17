@@ -43,10 +43,12 @@ export function Button({
     <button
       type={type}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center rounded-full font-semibold whitespace-nowrap transition-colors',
+        'inline-flex items-center justify-center rounded-full font-semibold whitespace-nowrap transition-colors',
         VARIANTS[variant],
         SIZES[size],
-        isBlock && 'w-full',
+        // В ряду с другой кнопкой «растянутая» кнопка занимает остаток места, а не 100% ширины:
+        // с shrink-0 и w-full она выходила за край окна (замечание владельца продукта).
+        isBlock ? 'w-full min-w-0 flex-1' : 'shrink-0',
         className,
       )}
       disabled={disabled || isLoading}

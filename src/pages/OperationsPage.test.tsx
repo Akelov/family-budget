@@ -20,11 +20,15 @@ describe('Экран «Операции»', () => {
     const { user } = renderApp('/');
     await screen.findAllByRole('region', { name: /17 октября/ });
     await user.type(screen.getByRole('searchbox', { name: 'Поиск по операциям' }), 'замена масла');
-    // Поиск срабатывает через 300 мс после ввода плюс задержка мок-сервера: на медленной машине CI
-    // это дольше стандартной 1 с у waitFor, поэтому ожидание — до 5 с.
-    const slow = { timeout: 5000 };
-    await waitFor(() => expect(screen.queryAllByText(/Перекрёсток/)).toHaveLength(0), slow);
-    expect(screen.getAllByText(/Замена масла/).length).toBeGreaterThan(0);
+    // Ждём сразу оба условия: пока идёт загрузка, «Перекрёстка» тоже нет (на экране скелетон),
+    // и проверка только его отсутствия иногда проходила раньше времени — тест падал случайно.
+    await waitFor(
+      () => {
+        expect(screen.getAllByText(/Замена масла/).length).toBeGreaterThan(0);
+        expect(screen.queryAllByText(/Перекрёсток/)).toHaveLength(0);
+      },
+      { timeout: 5000 },
+    );
     expect(screen.getAllByText(/по результатам поиска и фильтров/i).length).toBeGreaterThan(0);
   });
 
@@ -45,5 +49,15 @@ describe('Экран «Операции»', () => {
     setFailMode(null);
     await user.click(retry);
     expect(await screen.findByText('В этом периоде пока нет операций')).toBeInTheDocument();
+  });
+
+  it('при включённой имитации ошибок экран ошибки предлагает её выключить', async () => {
+    setFailMode('network');
+    renderApp('/');
+    expect(
+      await screen.findByRole('button', { name: 'Выключить имитацию' }, { timeout: 3000 }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Включена имитация ошибки сети/)).toBeInTheDocument();
+    setFailMode(null);
   });
 });

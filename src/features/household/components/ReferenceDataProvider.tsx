@@ -3,8 +3,10 @@ import { type ReactNode, useMemo } from 'react';
 import { fetchCategories } from '@/features/categories/api/categoriesApi';
 import { fetchTags } from '@/features/tags/api/tagsApi';
 import { errorMessage } from '@/shared/api/errors';
+import { getFailMode, setFailMode } from '@/shared/api/mockDb';
 import { useQuery } from '@/shared/api/useQuery';
 import { buildLookups } from '@/shared/lib/lookups';
+import { Button } from '@/shared/ui/Button';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Skeleton } from '@/shared/ui/Skeleton';
 
@@ -64,9 +66,32 @@ export function ReferenceDataProvider({ children }: ReferenceDataProviderProps) 
     );
   }
   if (!value) {
+    const failMode = getFailMode();
     return (
-      <div className="mx-auto max-w-[640px] px-4 py-10">
+      <div className="mx-auto flex max-w-[640px] flex-col gap-4 px-4 py-10">
         <ErrorState message={errorMessage(query.error)} onRetry={query.refetch} />
+        {failMode && (
+          // Без справочников не открывается ни один экран, в том числе настройки, где имитация
+          // включалась, — поэтому выключатель дублируется прямо здесь (замечание владельца продукта).
+          <div
+            role="status"
+            className="rounded-2xl bg-warning-bg p-4 text-center text-sm text-warning-foreground"
+          >
+            <p className="mb-3">
+              Включена имитация ошибки {failMode === 'network' ? 'сети' : 'сервера'} (Настройки ›
+              Для разработчика).
+            </p>
+            <Button
+              size="sm"
+              onClick={() => {
+                setFailMode(null);
+                window.location.reload();
+              }}
+            >
+              Выключить имитацию
+            </Button>
+          </div>
+        )}
       </div>
     );
   }

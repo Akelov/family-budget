@@ -1,6 +1,10 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
+
+// Экраны грузят данные через мок-сервер и ленивые страницы; под нагрузкой (CI, параллельные
+// тесты) 1 секунды по умолчанию для findBy/waitFor не хватало — тесты падали случайно.
+configure({ asyncUtilTimeout: 4000 });
 
 afterEach(() => {
   cleanup();

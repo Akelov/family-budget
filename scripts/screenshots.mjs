@@ -34,6 +34,23 @@ async function shot(page, name) {
   await page.screenshot({ path: `${out}/${name}.png` });
 }
 
+/** Все кнопки открытого окна должны помещаться в его границы (замечание: «Показать» и «Сохранить» вылезали). */
+async function checkDialog(page, name) {
+  const problems = await page.evaluate(() => {
+    const dialog = document.querySelector('[role="dialog"]');
+    if (!dialog) return ['окно не открылось'];
+    const box = dialog.getBoundingClientRect();
+    return [...dialog.querySelectorAll('button')]
+      .filter((b) => {
+        const r = b.getBoundingClientRect();
+        return r.width > 0 && (r.left < box.left - 0.5 || r.right > box.right + 0.5);
+      })
+      .map((b) => `кнопка «${b.textContent?.trim() || b.getAttribute('aria-label')}» выходит за окно`);
+  });
+  problems.forEach((p) => log.push(`${name}: ${p}`));
+  await shot(page, name);
+}
+
 const PAGES = [
   ['operations', '/'],
   ['reports', '/reports'],
@@ -84,6 +101,36 @@ for (const [label, width, height] of [
   await context.close();
 }
 
+// Окна в режиме изменения: здесь в футере две кнопки рядом.
+for (const [label, width, height] of [
+  ['mobile', 360, 740],
+  ['desktop', 1280, 900],
+]) {
+  const [context, page] = await open(width, height);
+  await page.goto(`${base}/`);
+  await settle(page);
+  await page.getByRole('button', { name: /Фильтры/ }).click();
+  await settle(page);
+  await checkDialog(page, `dialog_filters_${label}`);
+  await page.keyboard.press('Escape');
+  await page.locator(label === 'mobile' ? 'li button' : 'tbody tr[tabindex]').first().click();
+  await settle(page);
+  await checkDialog(page, `dialog_edit_operation_${label}`);
+  await page.keyboard.press('Escape');
+  await page.goto(`${base}/plan`);
+  await settle(page);
+  await page.getByRole('button', { name: /Изменить бюджет/ }).first().click();
+  await settle(page);
+  await checkDialog(page, `dialog_edit_budget_${label}`);
+  await page.keyboard.press('Escape');
+  await page.goto(`${base}/settings/categories`);
+  await settle(page);
+  await page.getByRole('button', { name: /^Продукты/ }).click();
+  await settle(page);
+  await checkDialog(page, `dialog_edit_category_${label}`);
+  await context.close();
+}
+
 for (const [width, height] of [
   [360, 740],
   [768, 1024],
@@ -107,7 +154,11 @@ for (const [width, height] of [
   await page.goto(`${base}/`);
   await page.waitForTimeout(6000);
   await shot(page, 'error_server_mobile');
-  await page.evaluate(() => localStorage.removeItem('family-budget:fail'));
+  // Выход из имитации ошибок прямо с экрана ошибки.
+  await page.getByRole('button', { name: 'Выключить имитацию' }).click();
+  await settle(page);
+  const isRecovered = await page.getByRole('heading', { name: 'Операции' }).isVisible();
+  if (!isRecovered) log.push('после «Выключить имитацию» приложение не загрузилось');
   await context.close();
 }
 
