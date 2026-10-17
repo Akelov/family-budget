@@ -16,10 +16,11 @@ import { TextInput } from '@/shared/ui/TextInput';
 export default function OnboardingPage() {
   const id = useId();
   const navigate = useNavigate();
-  const { email, signOut } = useAuth();
+  const { email, displayName: googleName, signOut } = useAuth();
   const session = useQuery('onboarding', fetchSession, ['session']);
   const [name, setName] = useState('');
-  const [displayName, setDisplayName] = useState(email?.split('@')[0] ?? '');
+  // Имя из аккаунта Google, иначе — часть email до «@» (пользователь может поправить).
+  const [displayName, setDisplayName] = useState(googleName ?? email?.split('@')[0] ?? '');
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const pendingInvite = readPendingInvite();

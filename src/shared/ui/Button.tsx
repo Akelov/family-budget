@@ -48,7 +48,9 @@ export function Button({
         SIZES[size],
         // В ряду с другой кнопкой «растянутая» кнопка занимает остаток места, а не 100% ширины:
         // с shrink-0 и w-full она выходила за край окна (замечание владельца продукта).
-        isBlock ? 'w-full min-w-0 flex-1' : 'shrink-0',
+        // grow, а не flex-1: у flex-1 базовый размер 0, и в колонке (форма входа) кнопка
+        // сплющивалась по высоте — найдено по скриншоту в ДЗ6.
+        isBlock ? 'w-full min-w-0 grow' : 'shrink-0',
         className,
       )}
       disabled={disabled || isLoading}

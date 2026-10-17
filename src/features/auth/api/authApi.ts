@@ -1,6 +1,8 @@
 import { ApiError } from '@/shared/api/errors';
 import { supabase } from '@/shared/api/supabaseClient';
 
+import { safeRedirectPath } from '../model/safeRedirect';
+
 /** Адрес сайта для ссылок из писем: корень приложения с учётом базового пути GitHub Pages. */
 export function appUrl(path = ''): string {
   return `${window.location.origin}${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
@@ -61,6 +63,25 @@ export async function signUp(email: string, password: string): Promise<boolean> 
     throw new ApiError('validation', 'Этот email уже зарегистрирован. Войти?');
   }
   return data.session !== null;
+}
+
+/**
+ * Вход через Google (OAuth 2.0, ДЗ6). Браузер уходит на страницу Google, затем в Supabase
+ * (он обменивает код на сессию с помощью Client Secret — секрет хранится только в Supabase)
+ * и возвращается на сайт уже вошедшим.
+ *
+ * @param next - страница, куда вернуть после входа (только внутри сайта)
+ */
+export async function signInWithGoogle(next: string | null): Promise<void> {
+  const { error } = await supabase().auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: appUrl(safeRedirectPath(next)),
+      // Дать выбрать аккаунт, если в браузере их несколько.
+      queryParams: { prompt: 'select_account' },
+    },
+  });
+  if (error) throw new ApiError('validation', 'Не удалось открыть вход через Google');
 }
 
 /** Письмо со ссылкой на смену пароля. */

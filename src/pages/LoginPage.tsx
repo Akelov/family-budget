@@ -2,6 +2,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 
 import { signIn } from '@/features/auth/api/authApi';
 import { AuthForm } from '@/features/auth/components/AuthForm';
+import { GoogleSignIn } from '@/features/auth/components/GoogleSignIn';
 import { safeRedirectPath } from '@/features/auth/model/safeRedirect';
 
 /** Вход по email и паролю; после входа — возврат на страницу, с которой отправили на вход (ERR-5). */
@@ -16,6 +17,7 @@ export default function LoginPage() {
     <AuthForm
       title="Вход"
       submitLabel="Войти"
+      intro={<GoogleSignIn next={next} />}
       onSubmit={async ({ email, password }) => {
         await signIn(email, password);
         navigate(target, { replace: true });

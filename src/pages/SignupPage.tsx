@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router';
 
 import { signUp } from '@/features/auth/api/authApi';
 import { AuthForm } from '@/features/auth/components/AuthForm';
+import { GoogleSignIn } from '@/features/auth/components/GoogleSignIn';
 
 /** Регистрация (FR-1.1): письмо со ссылкой подтверждения, после неё — экран «Создать семью». */
 export default function SignupPage() {
@@ -32,6 +33,7 @@ export default function SignupPage() {
     <AuthForm
       title="Регистрация"
       submitLabel="Создать аккаунт"
+      intro={<GoogleSignIn next={null} />}
       passwordAutocomplete="new-password"
       onSubmit={async ({ email, password }) => {
         const isSignedIn = await signUp(email, password);

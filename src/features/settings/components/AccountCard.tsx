@@ -12,7 +12,8 @@ import { SettingsCard } from './SettingsCard';
 
 /** Аккаунт: email, выход из аккаунта и выход из семьи для admin и member (FR-1.8). */
 export function AccountCard() {
-  const { email, isDemo, signOut } = useAuth();
+  const { email, provider, isDemo, signOut } = useAuth();
+  const description = email && provider === 'google' ? `${email} · вход через Google` : email;
   const { can } = useReference();
   const toast = useToast();
   const [isConfirmingLeave, setIsConfirmingLeave] = useState(false);
@@ -27,7 +28,7 @@ export function AccountCard() {
   }
 
   return (
-    <SettingsCard title="Аккаунт" description={email ?? undefined}>
+    <SettingsCard title="Аккаунт" description={description ?? undefined}>
       <div className="flex flex-wrap gap-2">
         <Button variant="secondary" icon={<LogOut />} onClick={() => void signOut()}>
           Выйти из аккаунта
