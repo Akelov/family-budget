@@ -5,12 +5,14 @@ import { createRoot } from 'react-dom/client';
 
 import { initAnalytics } from '@/shared/lib/analytics';
 import { installGlobalErrorLogging } from '@/shared/lib/globalErrors';
+import { installStaleBuildRecovery } from '@/shared/lib/staleBuild';
 
 import { App } from './App';
 import { router } from './router';
 import { startRouterAnalytics } from './routerAnalytics';
 
 installGlobalErrorLogging();
+installStaleBuildRecovery();
 initAnalytics();
 startRouterAnalytics(router);
 
