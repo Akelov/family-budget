@@ -97,6 +97,10 @@
    Сайт покажет «Такая категория уже есть», но уже по ответу базы. В Supabase: Logs →
    API Gateway → слева фильтр **Level** → Warning — запрос `POST /rest/v1/categories`
    с кодом **409**; в Postgres — `duplicate key value violates unique constraint`.
+   Результат на сервере (строка 17:11:51, код 409 выделен жёлтым):
+
+   ![Запрос с кодом 409 в журнале API Gateway](screenshots/logs_api_409_duplicate.png)
+
 3. Logs & Analytics → Auth — видны ваши входы и регистрации.
 
 SQL для просмотра журнала (SQL Editor):
