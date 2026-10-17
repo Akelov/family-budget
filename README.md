@@ -6,13 +6,14 @@
 
 Учебный проект: разработка с помощью AI-агента (Claude). Правила агента — [CLAUDE.md](CLAUDE.md).
 
-**Онлайн-версия:** https://akelov.github.io/family-budget/ (публикуется автоматически из ветки `main`).
+**Онлайн-версия:** https://family-budget-sable-nu.vercel.app (публикуется автоматически из ветки `main` после всех проверок).
+**Состояние сервиса:** https://family-budget-sable-nu.vercel.app/api/health
 
 ## Что умеет
 
 | Раздел | Возможности |
 |---|---|
-| **Вход** | Регистрация по email с подтверждением почты, вход, сброс пароля, выход |
+| **Вход** | Регистрация по email с подтверждением почты, **вход через Google**, сброс пароля, выход |
 | **Семья** | Создание семьи (сразу 15 категорий и 42 подкатегории), приглашение по ссылке, роли «Владелец», «Администратор», «Участник», выход из семьи, удаление семьи |
 | **Операции** | Период (месяц, свой цикл с дня N, произвольный диапазон), сводка «Доход / Расход / Остаток», история по дням, поиск, фильтры, добавление, изменение и удаление с отменой. Операции другого члена семьи появляются сразу (Realtime) |
 | **Отчёты** | Кольцевая диаграмма и список с долями, раскрытие категории до подкатегорий, вкладка «Теги» |
@@ -29,7 +30,7 @@
 архитектура, развёртывание, API endpoints, примеры запросов, процесс разработки с AI.
 
 ```text
-Браузер (React, GitHub Pages) ──HTTPS + токен──▶ Supabase: Auth · REST/RPC · Realtime
+Браузер (React, Vercel) ──HTTPS + токен──▶ Supabase: Auth · REST/RPC · Realtime
                                                      └─▶ PostgreSQL (11 таблиц, RLS)
 ```
 
@@ -39,7 +40,8 @@
 
 React 19 · TypeScript (strict) · Vite 7 · Tailwind CSS 4 · React Router 7 · Recharts 3 ·
 lucide-react · Supabase (PostgreSQL, Auth, RLS, Realtime, `@supabase/supabase-js`) ·
-Vitest 3 + Testing Library · ESLint 9 + Prettier · GitHub Actions + GitHub Pages.
+Vitest 4 + Testing Library · ESLint 9 + Prettier · GitHub Actions · Vercel · Google OAuth ·
+Яндекс.Метрика · UptimeRobot · Dependabot.
 
 ## Запуск
 
@@ -87,11 +89,23 @@ supabase/
 
 Деньги считаются в копейках (целые числа), даты — строками `YYYY-MM-DD` без часовых поясов.
 
-## Деплой
+## Деплой, интеграции и эксплуатация (ДЗ6)
 
-Каждый push в `main` запускает [GitHub Actions](.github/workflows/ci.yml): линтер, типы,
-тесты, сборка и публикация на GitHub Pages. Адрес Supabase и публичный ключ сборка берёт из
-переменных репозитория (Settings → Secrets and variables → Actions → Variables). Для Vercel готов `vercel.json` (сборка с `VITE_BASE=/`).
+Каждый push в `main` запускает [GitHub Actions](.github/workflows/ci.yml): Prettier → ESLint →
+TypeScript → тесты → `npm audit` → сборка → публикация на **Vercel** → smoke test
+(страницы и `/api/health`). Pull Request получает отдельный preview-адрес. Сайт обновляется
+только если все проверки прошли.
+
+| Что | Чем |
+|-----|-----|
+| Вход через Google | Supabase Auth + Google OAuth 2.0 |
+| Аналитика | Яндекс.Метрика: просмотры страниц и 10 событий без личных данных |
+| Мониторинг | `/api/health` (сайт, вход, база) → UptimeRobot каждые 5 минут + GitHub Actions каждый час |
+| Логи | JSON, уровни info / warning / error, версия сборки; таблица `client_errors`, Vercel Logs |
+| Безопасность | CSP и защитные заголовки, `npm audit` в пайплайне, Dependabot, Secret Protection, RLS |
+
+Полная документация — **[docs/hw6/integration_documentation.md](docs/hw6/integration_documentation.md)**,
+отчёт по безопасности — [docs/hw6/02_security_audit.md](docs/hw6/02_security_audit.md).
 
 ## Домашние задания
 
@@ -102,4 +116,4 @@ supabase/
 | 3 | UI-концепции, User Stories, ТЗ | [docs/hw3](docs/hw3/README.md) |
 | 4 | Frontend-приложение с AI-агентом | [отчёт о разработке](docs/hw4/development_report.md), [промпты](docs/hw4/prompts.md), [скриншоты](docs/hw4/screenshots) |
 | 5 | Backend (Supabase) и интеграция | [документация backend](docs/hw5/backend_documentation.md), [проверка API](docs/hw5/08_api_testing.md), [памятка по отладке](docs/hw5/debug_playbook.md), [отчёт Word](docs/hw5/ДЗ5_отчёт.docx) |
-| 6 | CI/CD и интеграции | — |
+| 6 | CI/CD и интеграция сервисов | [документация интеграций](docs/hw6/integration_documentation.md), [отчёт по безопасности](docs/hw6/02_security_audit.md), [отчёт Word](docs/hw6/ДЗ6_отчёт.docx) |

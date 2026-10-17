@@ -16,7 +16,7 @@ sequenceDiagram
   SB->>G: обмен кода на токены (Client ID + Client Secret)
   G-->>SB: профиль: email, имя
   SB->>S: возврат на сайт с сессией
-  S->>U: вошёл; имя из Google подставлено в профиль
+  S->>U: вошёл, имя из Google подставлено в профиль
 ```
 
 **Backend-часть flow выполняет Supabase Auth:** он хранит Client Secret, принимает код от Google

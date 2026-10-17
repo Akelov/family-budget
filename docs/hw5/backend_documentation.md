@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Приложение** | https://akelov.github.io/family-budget/ |
+| **Приложение** | https://family-budget-sable-nu.vercel.app (в ДЗ5 — GitHub Pages; в ДЗ6 сайт перенесён на Vercel, см. [docs/hw6](../hw6/integration_documentation.md)) |
 | **Репозиторий** | https://github.com/Akelov/family-budget |
 | **Backend** | Supabase (бесплатный тариф), проект `family-budget`, регион Central EU (Frankfurt) |
 | **API** | `https://itijdbhguzsqggowfgbn.supabase.co` — REST `/rest/v1`, вход `/auth/v1`, Realtime |
@@ -153,7 +153,7 @@ VITE_SUPABASE_ANON_KEY=sb_publishable_...
 Файл `.env.local` в `.gitignore` и в репозиторий не попадает. Без него сайт запускается
 в **демо-режиме** на мок-данных (как в ДЗ4).
 
-### 2.3. Публикация на GitHub Pages
+### 2.3. Публикация на GitHub Pages (в ДЗ6 заменена на Vercel — [01_cicd.md](../hw6/01_cicd.md))
 
 1. Репозиторий → **Settings → Secrets and variables → Actions → Variables** → две переменные:
    `VITE_SUPABASE_URL` и `VITE_SUPABASE_ANON_KEY`.
